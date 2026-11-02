@@ -4,10 +4,10 @@ const BG = preload("res://Assets/Cenarios/Rua_Comercial_Aprovada.png")
 const PLAYER = preload("res://Assets/Personagens/jogador_temporario.png")
 const CUSTOMER = preload("res://Assets/Personagens/cliente_temporario.png")
 const COUNTER = preload("res://Assets/Moveis/balcao_pixel_art.png")
-const INTERIOR = PackedVector2Array([Vector2(310,334),Vector2(738,190),Vector2(1138,332),Vector2(1115,437),Vector2(910,511),Vector2(707,583),Vector2(485,500),Vector2(310,408)])
-const SIDEWALK = PackedVector2Array([Vector2(410,814),Vector2(1090,547),Vector2(1515,600),Vector2(1515,704),Vector2(465,970),Vector2(40,895)])
-const DOOR = PackedVector2Array([Vector2(792,468),Vector2(980,475),Vector2(1045,687),Vector2(838,723)])
-const ROUTE = PackedVector2Array([Vector2(1120,697),Vector2(984,638),Vector2(904,596),Vector2(877,558),Vector2(805,510),Vector2(725,535),Vector2(805,510),Vector2(877,558),Vector2(904,596),Vector2(984,638),Vector2(1120,697)])
+var INTERIOR: PackedVector2Array = PackedVector2Array([Vector2(310,334),Vector2(738,190),Vector2(1138,332),Vector2(1115,437),Vector2(910,511),Vector2(707,583),Vector2(485,500),Vector2(310,408)])
+var SIDEWALK: PackedVector2Array = PackedVector2Array([Vector2(410,814),Vector2(1090,547),Vector2(1515,600),Vector2(1515,704),Vector2(465,970),Vector2(40,895)])
+var DOOR: PackedVector2Array = PackedVector2Array([Vector2(792,468),Vector2(980,475),Vector2(1045,687),Vector2(838,723)])
+var ROUTE: PackedVector2Array = PackedVector2Array([Vector2(1120,697),Vector2(984,638),Vector2(904,596),Vector2(877,558),Vector2(805,510),Vector2(725,535),Vector2(805,510),Vector2(877,558),Vector2(904,596),Vector2(984,638),Vector2(1120,697)])
 var pos_player = Vector2(865,622)
 var pos_customer = Vector2(1120,697)
 var pos_counter = Vector2(670,405)
@@ -78,7 +78,7 @@ func _walkable(at: Vector2, furniture: bool = true) -> bool:
     if at.x < 8 or at.y < 8 or at.x > 1528 or at.y > 1016:
         return false
     for offset in [Vector2.ZERO,Vector2(8,0),Vector2(-8,0),Vector2(0,8),Vector2(0,-8)]:
-        var p := at + offset
+        var p: Vector2 = at + offset
         if not (Geometry2D.is_point_in_polygon(p,INTERIOR) or Geometry2D.is_point_in_polygon(p,DOOR) or Geometry2D.is_point_in_polygon(p,SIDEWALK)):
             return false
     if furniture and owns_counter and not buying and at.distance_to(committed_counter) < 42:
@@ -91,10 +91,10 @@ func _physics_process(delta: float) -> void:
     var steps := maxi(1,ceili(distance.length()/5.0))
     for i in range(steps):
         var step := distance/float(steps)
-        var next_x := pos_player + Vector2(step.x,0)
+        var next_x: Vector2 = pos_player + Vector2(step.x,0)
         if _walkable(next_x):
             pos_player = next_x
-        var next_y := pos_player + Vector2(0,step.y)
+        var next_y: Vector2 = pos_player + Vector2(0,step.y)
         if _walkable(next_y):
             pos_player = next_y
     player.position = pos_player
@@ -124,7 +124,7 @@ func _npc(delta: float) -> void:
     if route_wait > 0:
         route_wait -= delta
         return
-    var diff := ROUTE[route_index]-pos_customer
+    var diff: Vector2 = ROUTE[route_index]-pos_customer
     if diff.length() < 5:
         route_index = (route_index+1)%ROUTE.size()
         if route_index == 6:
@@ -230,7 +230,7 @@ func _input(event: InputEvent) -> void:
             get_viewport().set_input_as_handled()
 
 func _direction(at: Vector2) -> void:
-    var diff := at-pad_center
+    var diff: Vector2 = at-pad_center
     move = diff.normalized() if diff.length()>15 else Vector2.ZERO
 
 func _interact() -> void:
