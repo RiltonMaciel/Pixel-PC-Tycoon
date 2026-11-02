@@ -1,6 +1,7 @@
 extends Node2D
 # Pixel PC Tycoon V0.4.8 - rua aprovada, personagens e balcao independentes.
 const BG = preload("res://Assets/Cenarios/Rua_Comercial_Aprovada.png")
+const SHOP_BG = preload("res://Assets/Cenarios/Loja_Base_Aprovada.png")
 const PLAYER = preload("res://Assets/Personagens/jogador_temporario.png")
 const CUSTOMER = preload("res://Assets/Personagens/cliente_temporario.png")
 const COUNTER = preload("res://Assets/Moveis/balcao_pixel_art.png")
@@ -29,14 +30,26 @@ var top_label: Label
 var info: Label
 var popup: AcceptDialog
 var pad_center = Vector2.ZERO
+var indoors := false
+var transitioning := false
+var bg_sprite: Sprite2D
+var door_panel: Polygon2D
+var walk_phase := 0.0
 
 func _ready() -> void:
-    var bg := Sprite2D.new()
-    bg.texture = BG
-    bg.centered = false
-    bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-    bg.z_index = -10
-    add_child(bg)
+    bg_sprite = Sprite2D.new()
+    bg_sprite.texture = BG
+    bg_sprite.centered = false
+    bg_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+    bg_sprite.z_index = -10
+    add_child(bg_sprite)
+    door_panel = Polygon2D.new()
+    door_panel.polygon = PackedVector2Array([Vector2(0,0),Vector2(42,-12),Vector2(42,110),Vector2(0,125)])
+    door_panel.color = Color(0.2,0.65,0.9,0.65)
+    door_panel.position = Vector2(865,550)
+    door_panel.z_index = 3
+    door_panel.visible = false
+    add_child(door_panel)
     player = _sprite(PLAYER, pos_player, 5)
     player.name = "Jogador_Independente"
     customer = _sprite(CUSTOMER, pos_customer, 6)
@@ -75,6 +88,9 @@ func _sprite(tex: Texture2D, at: Vector2, depth: int) -> Sprite2D:
     return s
 
 func _walkable(at: Vector2, furniture: bool = true) -> bool:
+    if indoors:
+        var dims := SHOP_BG.get_size()
+        return at.x >= dims.x*0.19 and at.x <= dims.x*0.81 and at.y >= dims.y*0.24 and at.y <= dims.y*0.76 and (not furniture or not owns_counter or at.distance_to(committed_counter)>42)
     if at.x < 8 or at.y < 8 or at.x > 1528 or at.y > 1016:
         return false
     for offset in [Vector2.ZERO,Vector2(8,0),Vector2(-8,0),Vector2(0,8),Vector2(0,-8)]:
@@ -87,7 +103,7 @@ func _walkable(at: Vector2, furniture: bool = true) -> bool:
 
 func _physics_process(delta: float) -> void:
     var direction := (move + Input.get_vector("ui_left","ui_right","ui_up","ui_down")).limit_length(1)
-    var distance := direction * 155.0 * delta
+    var distance := direction * 205.0 * delta
     var steps := maxi(1,ceili(distance.length()/5.0))
     for i in range(steps):
         var step := distance/float(steps)
@@ -98,6 +114,13 @@ func _physics_process(delta: float) -> void:
         if _walkable(next_y):
             pos_player = next_y
     player.position = pos_player
+    if direction.length() > 0.05:
+        walk_phase += delta * 13.0
+        player.offset.y = -23.0 + sin(walk_phase)*2.8
+        player.rotation = sin(walk_phase)*0.035
+    else:
+        player.offset.y = lerpf(player.offset.y,-23.0,minf(1.0,delta*12.0))
+        player.rotation = lerpf(player.rotation,0.0,minf(1.0,delta*12.0))
     if direction.x != 0:
         player.flip_h = direction.x < 0
     player.z_index = clampi(int(pos_player.y/100),1,9)
@@ -106,18 +129,20 @@ func _physics_process(delta: float) -> void:
         counter.position = pos_counter
         counter.modulate = Color(1,1,1,0.6) if _can_place(pos_counter) else Color(1,0.3,0.3,0.6)
     counter.z_index = clampi(int(pos_counter.y/100),1,9)
-    _npc(delta)
+    if not indoors:
+        _npc(delta)
     cam.position = cam.position.lerp(pos_player,minf(1,delta*5))
 
 func _can_place(at: Vector2) -> bool:
     for offset in [Vector2(-38,-30),Vector2(38,-30),Vector2(-38,30),Vector2(38,30)]:
-        if not Geometry2D.is_point_in_polygon(at+offset,INTERIOR):
+        if not _walkable(at+offset,false):
             return false
     if Geometry2D.is_point_in_polygon(at,DOOR) or at.distance_to(pos_player)<45:
         return false
-    for waypoint in ROUTE:
-        if at.distance_to(waypoint)<70:
-            return false
+    if not indoors:
+        for waypoint in ROUTE:
+            if at.distance_to(waypoint)<70:
+                return false
     return true
 
 func _npc(delta: float) -> void:
@@ -234,6 +259,14 @@ func _direction(at: Vector2) -> void:
     move = diff.normalized() if diff.length()>15 else Vector2.ZERO
 
 func _interact() -> void:
+    if transitioning:
+        return
+    if not placing and indoors and pos_player.y > SHOP_BG.get_height()*0.66:
+        _change_area(false)
+        return
+    if not placing and not indoors and pos_player.distance_to(Vector2(920,695)) < 155:
+        _change_area(true)
+        return
     if placing:
         if _can_place(pos_counter):
             placing = false
@@ -244,11 +277,34 @@ func _interact() -> void:
             _save()
         else:
             info.text = "Posicione no piso livre da loja."
-    elif pos_player.distance_to(pos_customer)<95:
+    elif not indoors and pos_player.distance_to(pos_customer)<95:
         route_wait = 1.5
         info.text = "Cliente: Ola! Procuro um computador."
     else:
         info.text = "Aproxime-se do cliente e pressione A."
+
+func _change_area(enter: bool) -> void:
+    transitioning = true
+    move = Vector2.ZERO
+    finger = -1
+    door_panel.visible = true
+    door_panel.scale.x = 1.0
+    var tween := create_tween()
+    tween.tween_property(door_panel,"scale:x",0.08,0.23)
+    await tween.finished
+    indoors = enter
+    bg_sprite.texture = SHOP_BG if indoors else BG
+    var dims := SHOP_BG.get_size()
+    pos_player = Vector2(dims.x*0.5,dims.y*0.62) if indoors else Vector2(920,715)
+    player.position = pos_player
+    cam.limit_right = int(dims.x) if indoors else 1536
+    cam.limit_bottom = int(dims.y) if indoors else 1024
+    cam.position = pos_player
+    customer.visible = not indoors
+    counter.visible = indoors and owns_counter
+    door_panel.visible = false
+    info.text = "Dentro da loja | A perto da saida para sair" if indoors else "Na rua | A perto da porta para entrar"
+    transitioning = false
 
 func _refresh() -> void:
     top_label.text = "PIXEL PC TYCOON | R$ "+str(money)
@@ -333,7 +389,7 @@ func _load() -> void:
         return
     money = maxi(0,int(data.get("cash",6500)))
     owns_counter = bool(data.get("owns_counter",false))
-    counter.visible = owns_counter
+    counter.visible = indoors and owns_counter
     var coords: Variant = data.get("furniture_position",[670,405])
     if coords is Array and coords.size()==2:
         pos_counter = Vector2(float(coords[0]),float(coords[1]))
