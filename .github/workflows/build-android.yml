@@ -1,0 +1,100 @@
+name: Pixel PC Tycoon V0.4.8 - APK Android
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "project.godot"
+      - "scenes/**"
+      - "scripts/**"
+      - "Assets/**"
+      - ".github/workflows/build-android.yml"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirmar que e a versao nova completa
+        run: |
+          set -euo pipefail
+          test -s project.godot
+          test -s scenes/RuaComercial.tscn
+          test -s scripts/RuaComercial.gd
+          test -s Assets/Cenarios/Rua_Comercial_Aprovada.png
+          test -s Assets/Cenarios/Loja_Base_Aprovada.png
+          test -s Assets/Personagens/jogador_temporario.png
+          test -s Assets/Personagens/cliente_temporario.png
+          test -s Assets/Moveis/balcao_pixel_art.png
+          grep -q 'RuaComercial.tscn' project.godot
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Instalar Godot 4.4.1 e templates
+        run: |
+          set -euxo pipefail
+          mkdir -p "$HOME/godot-bin" "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d "$HOME/godot-bin"
+          mv "$HOME/godot-bin/Godot_v4.4.1-stable_linux.x86_64" "$HOME/godot-bin/godot"
+          chmod +x "$HOME/godot-bin/godot"
+          curl -fL --retry 3 -o /tmp/templates.tpz https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz
+          unzip -qoj /tmp/templates.tpz 'templates/android_debug.apk' 'templates/android_release.apk' -d "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+      - name: Importar e validar GDScript
+        run: |
+          set -euo pipefail
+          "$HOME/godot-bin/godot" --headless --path . --editor --import --quit > /tmp/import.log 2>&1 || { cat /tmp/import.log; exit 1; }
+          cat /tmp/import.log
+          "$HOME/godot-bin/godot" --headless --path . --quit-after 30 > /tmp/smoke.log 2>&1 || { cat /tmp/smoke.log; exit 1; }
+          cat /tmp/smoke.log
+          if grep -Eqi '(SCRIPT ERROR|Parse Error|Failed to load script|Invalid call|Invalid access|Cannot open file|ERROR:)' /tmp/import.log /tmp/smoke.log; then exit 1; fi
+      - name: Preparar exportacao Android
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.android" "$HOME/.config/godot"
+          keytool -genkeypair -noprompt -keystore "$HOME/.android/debug.keystore" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Pixel PC Tycoon Dev, O=Pixel PC Tycoon, C=BR"
+          cat > export_presets.cfg <<'PRESET'
+          [preset.0]
+          name="Android"
+          platform="Android"
+          runnable=true
+          advanced_options=false
+          export_filter="all_resources"
+          include_filter=""
+          exclude_filter=""
+          export_path=""
+          [preset.0.options]
+          gradle_build/use_gradle_build=false
+          package/unique_name="com.pixelpctycoon.game"
+          package/name="Pixel PC Tycoon"
+          package/signed=true
+          package/version_code=48
+          package/version_name="0.4.8"
+          architectures/arm64-v8a=true
+          architectures/armeabi-v7a=true
+          PRESET
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          p=Path.home()/'.config/godot/editor_settings-4.4.tres'
+          with p.open('a') as f:
+              for key,value in {
+                  'export/android/android_sdk_path':os.environ['ANDROID_HOME'],
+                  'export/android/java_sdk_path':os.environ['JAVA_HOME'],
+                  'export/android/debug_keystore':str(Path.home()/'.android/debug.keystore'),
+                  'export/android/debug_keystore_user':'androiddebugkey',
+                  'export/android/debug_keystore_pass':'android',
+              }.items(): f.write('\n'+key+' = "'+value+'"\n')
+          PY
+      - name: Gerar APK novo
+        run: |
+          set -euo pipefail
+          "$HOME/godot-bin/godot" --headless --path . --export-debug Android "$GITHUB_WORKSPACE/Pixel_PC_Tycoon_V048.apk"
+          test -s Pixel_PC_Tycoon_V048.apk
+          unzip -t Pixel_PC_Tycoon_V048.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pixel-PC-Tycoon-V048-APK
+          path: Pixel_PC_Tycoon_V048.apk
+          if-no-files-found: error
