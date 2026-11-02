@@ -9,7 +9,7 @@ var INTERIOR: PackedVector2Array = PackedVector2Array([Vector2(310,334),Vector2(
 var SIDEWALK: PackedVector2Array = PackedVector2Array([Vector2(410,814),Vector2(1090,547),Vector2(1515,600),Vector2(1515,704),Vector2(465,970),Vector2(40,895)])
 var DOOR: PackedVector2Array = PackedVector2Array([Vector2(792,468),Vector2(980,475),Vector2(1045,687),Vector2(838,723)])
 var ROUTE: PackedVector2Array = PackedVector2Array([Vector2(1120,697),Vector2(984,638),Vector2(904,596),Vector2(877,558),Vector2(805,510),Vector2(725,535),Vector2(805,510),Vector2(877,558),Vector2(904,596),Vector2(984,638),Vector2(1120,697)])
-var pos_player = Vector2(865,622)
+var pos_player = Vector2(920,715)
 var pos_customer = Vector2(1120,697)
 var pos_counter = Vector2(670,405)
 var committed_counter = Vector2(670,405)
@@ -33,7 +33,8 @@ var pad_center = Vector2.ZERO
 var indoors := false
 var transitioning := false
 var bg_sprite: Sprite2D
-var door_panel: Polygon2D
+var door_sprite: Sprite2D
+const DOOR_FRAMES = [preload("res://Assets/Portas/porta_loja_00.svg"),preload("res://Assets/Portas/porta_loja_01.svg"),preload("res://Assets/Portas/porta_loja_02.svg"),preload("res://Assets/Portas/porta_loja_03.svg"),preload("res://Assets/Portas/porta_loja_04.svg"),preload("res://Assets/Portas/porta_loja_05.svg"),preload("res://Assets/Portas/porta_loja_06.svg")]
 var walk_phase := 0.0
 
 func _ready() -> void:
@@ -43,13 +44,14 @@ func _ready() -> void:
     bg_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     bg_sprite.z_index = -10
     add_child(bg_sprite)
-    door_panel = Polygon2D.new()
-    door_panel.polygon = PackedVector2Array([Vector2(0,0),Vector2(42,-12),Vector2(42,110),Vector2(0,125)])
-    door_panel.color = Color(0.2,0.65,0.9,0.65)
-    door_panel.position = Vector2(865,550)
-    door_panel.z_index = 3
-    door_panel.visible = false
-    add_child(door_panel)
+    door_sprite = Sprite2D.new()
+    door_sprite.texture = DOOR_FRAMES[0]
+    door_sprite.position = Vector2(924,618)
+    door_sprite.scale = Vector2(1.65,1.65)
+    door_sprite.z_index = 12
+    door_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+    door_sprite.visible = false
+    add_child(door_sprite)
     player = _sprite(PLAYER, pos_player, 5)
     player.name = "Jogador_Independente"
     customer = _sprite(CUSTOMER, pos_customer, 6)
@@ -95,7 +97,7 @@ func _walkable(at: Vector2, furniture: bool = true) -> bool:
         return false
     for offset in [Vector2.ZERO,Vector2(8,0),Vector2(-8,0),Vector2(0,8),Vector2(0,-8)]:
         var p: Vector2 = at + offset
-        if not (Geometry2D.is_point_in_polygon(p,INTERIOR) or Geometry2D.is_point_in_polygon(p,DOOR) or Geometry2D.is_point_in_polygon(p,SIDEWALK)):
+        if not (Geometry2D.is_point_in_polygon(p,SIDEWALK) or (p.distance_to(Vector2(920,695)) < 110 and p.y >= 650)) :
             return false
     if furniture and owns_counter and not buying and at.distance_to(committed_counter) < 42:
         return false
@@ -261,7 +263,7 @@ func _direction(at: Vector2) -> void:
 func _interact() -> void:
     if transitioning:
         return
-    if not placing and indoors and pos_player.y > SHOP_BG.get_height()*0.66:
+    if not placing and indoors and pos_player.y > SHOP_BG.get_height()*0.57:
         _change_area(false)
         return
     if not placing and not indoors and pos_player.distance_to(Vector2(920,695)) < 155:
@@ -287,11 +289,9 @@ func _change_area(enter: bool) -> void:
     transitioning = true
     move = Vector2.ZERO
     finger = -1
-    door_panel.visible = true
-    door_panel.scale.x = 1.0
-    var tween := create_tween()
-    tween.tween_property(door_panel,"scale:x",0.08,0.23)
-    await tween.finished
+    if enter:
+        await _animate_door(true)
+    await _fade_transition()
     indoors = enter
     bg_sprite.texture = SHOP_BG if indoors else BG
     var dims := SHOP_BG.get_size()
@@ -302,9 +302,30 @@ func _change_area(enter: bool) -> void:
     cam.position = pos_player
     customer.visible = not indoors
     counter.visible = indoors and owns_counter
-    door_panel.visible = false
+    if not enter:
+        await _animate_door(false)
     info.text = "Dentro da loja | A perto da saida para sair" if indoors else "Na rua | A perto da porta para entrar"
     transitioning = false
+
+func _animate_door(opening: bool) -> void:
+    door_sprite.visible = true
+    var order := [0,1,2,3] if opening else [3,4,5,6]
+    for frame in order:
+        door_sprite.texture = DOOR_FRAMES[frame]
+        await get_tree().create_timer(0.10).timeout
+    door_sprite.visible = false
+
+func _fade_transition() -> void:
+    var cover := ColorRect.new()
+    cover.color = Color(0,0,0,0)
+    cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    layer.add_child(cover)
+    var tween := create_tween()
+    tween.tween_property(cover,"color:a",1.0,0.16)
+    tween.tween_property(cover,"color:a",0.0,0.20)
+    await tween.finished
+    cover.queue_free()
 
 func _refresh() -> void:
     top_label.text = "PIXEL PC TYCOON | R$ "+str(money)
