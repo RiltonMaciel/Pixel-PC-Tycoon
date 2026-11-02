@@ -84,18 +84,24 @@ jobs:
           PRESET
           python3 - <<'PY'
           from pathlib import Path
-          import os
+          import os, re
           p=Path.home()/'.config/godot/editor_settings-4.4.tres'
-          p.parent.mkdir(parents=True, exist_ok=True)
-          if not p.exists(): p.write_text('[gd_resource type="EditorSettings" format=3]\n')
-          with p.open('a') as f:
-              for key,value in {
-                  'export/android/android_sdk_path':os.environ['ANDROID_HOME'],
-                  'export/android/java_sdk_path':os.environ['JAVA_HOME'],
-                  'export/android/debug_keystore':str(Path.home()/'.android/debug.keystore'),
-                  'export/android/debug_keystore_user':'androiddebugkey',
-                  'export/android/debug_keystore_pass':'android',
-              }.items(): f.write('\n'+key+' = "'+value+'"\n')
+          raw=p.read_text()
+          updates={
+              'export/android/android_sdk_path':os.environ['ANDROID_HOME'],
+              'export/android/java_sdk_path':os.environ['JAVA_HOME'],
+              'export/android/debug_keystore':str(Path.home()/'.android/debug.keystore'),
+              'export/android/debug_keystore_pass':'android',
+          }
+          for key,value in updates.items():
+              pattern=r'(?m)^'+re.escape(key)+r'\s*=.*$'
+              line=key+' = "'+value+'"'
+              if re.search(pattern,raw):
+                  raw=re.sub(pattern,lambda _:line,raw,count=1)
+              else:
+                  raw=raw.replace('[resource]','[resource]\n'+line,1)
+          p.write_text(raw)
+          print('Updated Godot editor settings:',p)
           PY
       - name: Diagnosticar SDK Android
         run: |
