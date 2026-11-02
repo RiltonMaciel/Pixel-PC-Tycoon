@@ -31,3 +31,29 @@ static func criar_sprite(id: String, posicao: Vector2) -> Sprite2D:
     sprite.position = posicao
     sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     return sprite
+
+## Busca os quatro angulos em pastas individuais; enquanto nao houver PNGs
+## definitivos, usa o SVG legado como placeholder, sem simular perspectiva.
+static func textura_orientada(id: String, angulo: int = 0) -> Texture2D:
+    var item: Dictionary = dados(id)
+    if item.is_empty():
+        return null
+    var arquivo: String = str(item["arquivo"])
+    var base: String = arquivo.get_base_dir()
+    var nome: String = arquivo.get_file().get_basename()
+    var candidato: String = base.path_join(nome).path_join(str(angulo) + ".png")
+    if ResourceLoader.exists(candidato):
+        return load(candidato) as Texture2D
+    return textura(id)
+
+static func orientacoes_disponiveis(id: String) -> Array[int]:
+    var resultado: Array[int] = []
+    var item: Dictionary = dados(id)
+    if item.is_empty():
+        return resultado
+    var arquivo: String = str(item["arquivo"])
+    var pasta: String = arquivo.get_base_dir().path_join(arquivo.get_file().get_basename())
+    for angulo in [0, 90, 180, 270]:
+        if ResourceLoader.exists(pasta.path_join(str(angulo) + ".png")):
+            resultado.append(angulo)
+    return resultado
