@@ -60,6 +60,8 @@ jobs:
           platform="Android"
           runnable=true
           advanced_options=false
+          dedicated_server=false
+          custom_features=""
           export_filter="all_resources"
           include_filter=""
           exclude_filter=""
@@ -69,15 +71,23 @@ jobs:
           package/unique_name="com.pixelpctycoon.game"
           package/name="Pixel PC Tycoon"
           package/signed=true
+          keystore/debug=""
+          keystore/debug_user="androiddebugkey"
+          keystore/debug_password="android"
           package/version_code=48
           package/version_name="0.4.8"
+          permissions/internet=true
+          architectures/x86_64=false
           architectures/arm64-v8a=true
           architectures/armeabi-v7a=true
+          architectures/x86=false
           PRESET
           python3 - <<'PY'
           from pathlib import Path
           import os
           p=Path.home()/'.config/godot/editor_settings-4.4.tres'
+          p.parent.mkdir(parents=True, exist_ok=True)
+          if not p.exists(): p.write_text('[gd_resource type="EditorSettings" format=3]\n')
           with p.open('a') as f:
               for key,value in {
                   'export/android/android_sdk_path':os.environ['ANDROID_HOME'],
@@ -90,7 +100,7 @@ jobs:
       - name: Gerar APK novo
         run: |
           set -euo pipefail
-          "$HOME/godot-bin/godot" --headless --path . --export-debug Android "$GITHUB_WORKSPACE/Pixel_PC_Tycoon_V048.apk"
+          "$HOME/godot-bin/godot" --headless --path . --editor --export-debug Android "$GITHUB_WORKSPACE/Pixel_PC_Tycoon_V048.apk"
           test -s Pixel_PC_Tycoon_V048.apk
           unzip -t Pixel_PC_Tycoon_V048.apk
       - uses: actions/upload-artifact@v4
