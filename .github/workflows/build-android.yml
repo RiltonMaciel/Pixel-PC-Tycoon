@@ -40,7 +40,8 @@ jobs:
           mv "$HOME/godot-bin/Godot_v4.4.1-stable_linux.x86_64" "$HOME/godot-bin/godot"
           chmod +x "$HOME/godot-bin/godot"
           curl -fL --retry 3 -o /tmp/templates.tpz https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz
-          unzip -qoj /tmp/templates.tpz 'templates/android_debug.apk' 'templates/android_release.apk' -d "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          unzip -qoj /tmp/templates.tpz 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/version.txt' -d "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          test -s "$HOME/.local/share/godot/export_templates/4.4.1.stable/version.txt"
       - name: Importar e validar GDScript
         run: |
           set -euo pipefail
