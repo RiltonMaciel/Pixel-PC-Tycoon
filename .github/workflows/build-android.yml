@@ -71,7 +71,7 @@ jobs:
           package/unique_name="com.pixelpctycoon.game"
           package/name="Pixel PC Tycoon"
           package/signed=true
-          keystore/debug=""
+          keystore/debug="/home/runner/.android/debug.keystore"
           keystore/debug_user="androiddebugkey"
           keystore/debug_password="android"
           package/version_code=48
