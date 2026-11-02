@@ -2,6 +2,9 @@ extends Node2D
 # Pixel PC Tycoon V0.4.8 - rua aprovada, personagens e balcao independentes.
 const BG = preload("res://Assets/Cenarios/Rua_Comercial_Aprovada.png")
 const SHOP_BG = preload("res://Assets/Cenarios/Loja_Base_Aprovada.png")
+const CATALOGO = preload("res://scripts/Imoveis/CatalogoImoveis.gd")
+const GERENCIADOR = preload("res://scripts/Imoveis/GerenciadorImoveis.gd")
+const LOJA_ID := "pc_store_001"
 const PLAYER = preload("res://Assets/Personagens/jogador_temporario.png")
 const CUSTOMER = preload("res://Assets/Personagens/cliente_temporario.png")
 const COUNTER = preload("res://Assets/Moveis/balcao_pixel_art.png")
@@ -30,6 +33,7 @@ var top_label: Label
 var info: Label
 var popup: AcceptDialog
 var pad_center = Vector2.ZERO
+var gestor_imoveis = GERENCIADOR.new()
 var indoors := false
 var transitioning := false
 var bg_sprite: Sprite2D
@@ -263,10 +267,12 @@ func _direction(at: Vector2) -> void:
 func _interact() -> void:
     if transitioning:
         return
+    var cadastro: Dictionary = CATALOGO.buscar(LOJA_ID)
+    var porta: Vector2 = cadastro.get("porta_externa", Vector2(920,695))
     if not placing and indoors and pos_player.y > SHOP_BG.get_height()*0.57:
         _change_area(false)
         return
-    if not placing and not indoors and pos_player.distance_to(Vector2(920,695)) < 155:
+    if not placing and not indoors and pos_player.distance_to(porta) < 155:
         _change_area(true)
         return
     if placing:
@@ -292,10 +298,16 @@ func _change_area(enter: bool) -> void:
     if enter:
         await _animate_door(true)
     await _fade_transition()
+    var dados: Dictionary = gestor_imoveis.entrar(LOJA_ID) if enter else gestor_imoveis.sair()
+    if dados.is_empty():
+        transitioning = false
+        return
     indoors = enter
-    bg_sprite.texture = SHOP_BG if indoors else BG
+    var cenario_interno: Texture2D = CATALOGO.interior(LOJA_ID)
+    bg_sprite.texture = cenario_interno if indoors and cenario_interno != null else BG
     var dims := SHOP_BG.get_size()
-    pos_player = Vector2(dims.x*0.5,dims.y*0.62) if indoors else Vector2(920,715)
+    var inicio: Vector2 = dados.get("entrada_interna_normalizada", Vector2(0.5,0.62))
+    pos_player = Vector2(dims.x*inicio.x,dims.y*inicio.y) if indoors else dados.get("saida_externa", Vector2(920,715))
     player.position = pos_player
     cam.limit_right = int(dims.x) if indoors else 1536
     cam.limit_bottom = int(dims.y) if indoors else 1024
