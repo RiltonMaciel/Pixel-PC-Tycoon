@@ -97,10 +97,19 @@ jobs:
                   'export/android/debug_keystore_pass':'android',
               }.items(): f.write('\n'+key+' = "'+value+'"\n')
           PY
+      - name: Diagnosticar SDK Android
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "JAVA_HOME=$JAVA_HOME"
+          ls -la "$ANDROID_HOME/build-tools" || true
+          ls -la "$ANDROID_HOME/platforms" || true
+          ls -la "$HOME/.config/godot" || true
+          "$HOME/godot-bin/godot" --headless --path . --editor --verbose --quit > /tmp/android-diagnostics.log 2>&1 || true
+          grep -Ei "android|sdk|keystore|export|error|warning" /tmp/android-diagnostics.log | tail -100 || true
       - name: Gerar APK novo
         run: |
           set -euo pipefail
-          "$HOME/godot-bin/godot" --headless --path . --editor --export-debug Android "$GITHUB_WORKSPACE/Pixel_PC_Tycoon_V048.apk"
+          "$HOME/godot-bin/godot" --headless --path . --export-debug Android "$GITHUB_WORKSPACE/Pixel_PC_Tycoon_V048.apk"
           test -s Pixel_PC_Tycoon_V048.apk
           unzip -t Pixel_PC_Tycoon_V048.apk
       - uses: actions/upload-artifact@v4
