@@ -130,6 +130,32 @@ class AssetsTest(unittest.TestCase):
                 self.assertGreater(box[0], 0)
                 self.assertLess(box[2], 160)
 
+    def test_pc_store_counter_four_real_orientations(self):
+        """Four independent PNGs must exist; never synthesize angles by rotating."""
+        folder = ROOT / "Assets" / "Moveis" / "Balcoes" / "balcao_pc_store"
+        expected = {"0.png", "90.png", "180.png", "270.png"}
+        self.assertEqual({p.name for p in folder.glob("*.png")}, expected)
+        images = {}
+        for angle in (0, 90, 180, 270):
+            with self.subTest(angle=angle):
+                with Image.open(folder / f"{angle}.png") as image:
+                    self.assertEqual(image.format, "PNG")
+                    self.assertEqual(image.mode, "RGBA")
+                    self.assertGreaterEqual(image.width, 32)
+                    self.assertGreaterEqual(image.height, 32)
+                    alpha = image.getchannel("A")
+                    self.assertIsNotNone(alpha.getbbox(), "Empty counter sprite")
+                    self.assertEqual(alpha.getextrema(), (0, 255), "Background must be transparent")
+                    images[angle] = image.copy()
+        for first in (0, 90, 180, 270):
+            for second in (0, 90, 180, 270):
+                if first < second:
+                    self.assertNotEqual(
+                        hashlib.sha256(images[first].tobytes()).digest(),
+                        hashlib.sha256(images[second].tobytes()).digest(),
+                        f"Angles {first} and {second} must not be duplicated",
+                    )
+
     def test_furniture_padding(self):
         files = list((ROOT / "Assets" / "Moveis" / "Modulares").glob("*.png"))
         self.assertEqual(len(files), 11)
