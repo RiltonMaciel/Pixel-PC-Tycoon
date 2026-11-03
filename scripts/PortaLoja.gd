@@ -1,5 +1,5 @@
 extends Node2D
-## Anima recortes da propria fachada; nao sobrepoe a porta SVG de outro predio.
+## Usa exatamente a mesma textura e coordenadas da fachada renderizada na rua.
 const QUAD: Array[Vector2] = [Vector2(584,539),Vector2(744,590),Vector2(744,765),Vector2(584,715)]
 var tween_abertura: Tween
 var esquerda: Polygon2D
@@ -14,7 +14,7 @@ func _ready() -> void:
     vao.polygon = QUAD
     vao.color = Color("#15202c")
     add_child(vao)
-    var textura := preload("res://Assets/Cenarios/Exterior/PC_Store_Com_Telhado.png")
+    var textura := preload("res://Assets/Cenarios/Bairro/pc_store_recorte.png")
     esquerda = Polygon2D.new()
     direita = Polygon2D.new()
     var meio_topo := (QUAD[0] + QUAD[1]) * 0.5
