@@ -1,6 +1,7 @@
 extends Node2D
 ## Anima recortes da propria fachada; nao sobrepoe a porta SVG de outro predio.
 const QUAD: Array[Vector2] = [Vector2(584,539),Vector2(744,590),Vector2(744,765),Vector2(584,715)]
+var tween_abertura: Tween
 var esquerda: Polygon2D
 var direita: Polygon2D
 var abertura: float = 0.0:
@@ -37,10 +38,15 @@ func _atualizar() -> void:
     direita.polygon = PackedVector2Array([topo.lerp(QUAD[1],fator),QUAD[1],QUAD[2],base.lerp(QUAD[2],fator)])
 
 func animar(abrir: bool) -> void:
+    # Uma segunda interacao nao pode deixar dois tweens disputando as folhas.
+    if tween_abertura != null and tween_abertura.is_running():
+        tween_abertura.kill()
     visible = true
     abertura = 0.0 if abrir else 1.0
-    var tween := create_tween()
-    tween.tween_property(self,"abertura",1.0 if abrir else 0.0,0.35)
-    await tween.finished
+    tween_abertura = create_tween()
+    tween_abertura.set_trans(Tween.TRANS_SINE)
+    tween_abertura.set_ease(Tween.EASE_IN_OUT)
+    tween_abertura.tween_property(self, "abertura", 1.0 if abrir else 0.0, 0.35)
+    await tween_abertura.finished
     if not abrir:
         visible = false
