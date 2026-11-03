@@ -46,29 +46,38 @@ static func criar_sprite(id: String, posicao: Vector2) -> Sprite2D:
     sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     return sprite
 
-## Busca os quatro angulos em pastas individuais; enquanto nao houver PNGs
-## definitivos, usa o SVG legado como placeholder, sem simular perspectiva.
+## Mantem o PNG original como 0 graus ate haver arte aprovada nas outras vistas.
+## Os angulos adicionais devem ser PNGs independentes, nunca rotacao 2D.
+static func pasta_orientacoes(id: String) -> String:
+    var item: Dictionary = dados(id)
+    if item.is_empty():
+        return ""
+    var arquivo: String = str(item["arquivo"])
+    var base: String = arquivo.get_base_dir()
+    var nome: String = arquivo.get_file().get_basename()
+    return str(item.get("pasta_angulos", base.path_join(nome)))
+
 static func textura_orientada(id: String, angulo: int = 0) -> Texture2D:
     var item: Dictionary = dados(id)
     if item.is_empty():
         return null
-    var arquivo: String = str(item["arquivo"])
-    var base: String = arquivo.get_base_dir()
-    var nome: String = arquivo.get_file().get_basename()
-    var pasta: String = str(item.get("pasta_angulos", base.path_join(nome)))
-    var candidato: String = pasta.path_join(str(angulo) + ".png")
+    var candidato: String = pasta_orientacoes(id).path_join(str(angulo) + ".png")
     if ResourceLoader.exists(candidato):
         return load(candidato) as Texture2D
-    return textura(id)
+    # Compatibilidade com os 11 PNGs modulares aprovados, ainda fora de pastas.
+    if angulo == 0:
+        return textura(id)
+    return null
 
 static func orientacoes_disponiveis(id: String) -> Array[int]:
     var resultado: Array[int] = []
     var item: Dictionary = dados(id)
     if item.is_empty():
-        return resultado if not resultado.is_empty() else [0]
-    var arquivo: String = str(item["arquivo"])
-    var pasta: String = str(item.get("pasta_angulos", arquivo.get_base_dir().path_join(arquivo.get_file().get_basename())))
+        return resultado
+    var pasta: String = pasta_orientacoes(id)
     for angulo in [0, 90, 180, 270]:
         if ResourceLoader.exists(pasta.path_join(str(angulo) + ".png")):
             resultado.append(angulo)
+        elif angulo == 0 and ResourceLoader.exists(str(item["arquivo"])):
+            resultado.append(0)
     return resultado
