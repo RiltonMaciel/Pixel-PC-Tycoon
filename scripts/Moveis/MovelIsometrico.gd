@@ -35,7 +35,13 @@ func girar(sentido: int = 1) -> bool:
     if disponiveis.size() < 2:
         return false
     var indice := disponiveis.find(ANGULOS[orientacao])
-    orientacao = ANGULOS.find(disponiveis[posmod(indice + sentido,disponiveis.size())])
+    if indice < 0:
+        # Um save antigo pode conter uma orientacao sem sprite correspondente.
+        # Retorna ao primeiro angulo real em vez de inventar uma rotacao.
+        indice = 0
+        orientacao = ANGULOS.find(disponiveis[indice])
+    else:
+        orientacao = ANGULOS.find(disponiveis[posmod(indice + sentido,disponiveis.size())])
     _atualizar()
     orientacao_alterada.emit(ANGULOS[orientacao])
     return true
@@ -99,6 +105,9 @@ func _atualizar() -> void:
         return
     visual.texture = CATALOGO.textura_orientada(item_id, ANGULOS[orientacao])
     var dados: Dictionary = CATALOGO.dados(item_id)
+    if visual.texture == null:
+        push_warning("Sprite ausente para movel: " + item_id)
+        return
     var tamanho := visual.texture.get_size()
     visual.offset = -Vector2(dados.get("pivo", Vector2(tamanho.x * 0.5, tamanho.y - 8 if dados.has("largura") else tamanho.y)))
     var escala := float(dados.get("largura",tamanho.x)) / tamanho.x if dados.has("largura") else float(dados.get("escala",1.0))
