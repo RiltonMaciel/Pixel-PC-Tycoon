@@ -13,7 +13,7 @@ const ITENS := {
     "banqueta": {"nome":"Banqueta","arquivo":"res://Assets/Moveis/Modulares/banqueta.png","preco":90,"largura":35,"colisao":Vector2(30,20),"isometrico":true},
     "caixa_registradora": {"nome":"Caixa registradora (decoracao)","arquivo":"res://Assets/Moveis/Modulares/caixa_registradora.png","preco":250,"largura":48,"colisao":Vector2(40,24),"isometrico":true},
     "pc_monitor_teclado": {"nome":"PC e monitor (decoracao)","arquivo":"res://Assets/Moveis/Modulares/pc_monitor_teclado.png","preco":1000,"largura":65,"colisao":Vector2(58,30),"isometrico":true},
-    "balcao_pc_store": {"nome":"Balcao PC Store (arte provisoria)","arquivo":"res://Assets/Moveis/Balcoes/balcao_pc_store/0.png","pasta_angulos":"res://Assets/Moveis/Balcoes/balcao_pc_store","categoria":"balcoes","preco":450,"revenda":225,"colisao":Vector2(128,64),"escala":0.65,"pivo":Vector2(128,248)},
+    "balcao_pc_store": {"nome":"Balcao PC Store","isometrico":true,"arquivo":"res://Assets/Moveis/Balcoes/balcao_pc_store/0.png","pasta_angulos":"res://Assets/Moveis/Balcoes/balcao_pc_store","categoria":"balcoes","preco":450,"revenda":225,"colisao":Vector2(128,64),"escala":0.65,"pivo":Vector2(128,248)},
     "balcao_simples": {"arquivo":"res://Assets/Moveis/Balcoes/balcao_simples.svg","categoria":"balcoes","preco":450,"colisao":Vector2(96,45)},
     "mesa_exposicao": {"arquivo":"res://Assets/Moveis/Mesas/mesa_exposicao.svg","categoria":"mesas","preco":650,"colisao":Vector2(100,45)},
     "estante_pecas": {"arquivo":"res://Assets/Moveis/Prateleiras/estante_pecas.svg","categoria":"prateleiras","preco":850,"colisao":Vector2(80,55)},
