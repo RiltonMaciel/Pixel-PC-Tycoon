@@ -81,6 +81,12 @@ func _run() -> void:
     game._buy()
     check(game.moveis.is_empty() and game.money == 6500,"Compra bloqueada na rua")
     await _capture("01_exterior")
+    # O sprite da porta deve amostrar a mesma textura usada na fachada em cena.
+    var fachada_sprite := game.bairro.predio.get_child(0) as Sprite2D
+    check(fachada_sprite != null,"Fachada PC Store renderizada na rua")
+    if fachada_sprite != null:
+        check(game.porta.esquerda.texture == fachada_sprite.texture and game.porta.direita.texture == fachada_sprite.texture,"Porta e fachada usam exatamente a mesma textura")
+        check(is_equal_approx(game.porta.scale.x, GAME.BAIRRO.LOJA_ESCALA) and game.porta.position.is_equal_approx(GAME.BAIRRO.LOJA_POS),"Porta usa mesma escala e origem da fachada")
     game.porta.visible = true
     game.porta.abertura = 1.0
     await _capture("02_porta")
