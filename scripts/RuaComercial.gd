@@ -392,7 +392,7 @@ func _edit_action(action: String) -> void:
     match action:
         "Mover", "Girar":
             if action == "Girar" and SPRITES.orientacoes_disponiveis(selecionado.item_id).size() < 2:
-                info.text = "Este sprite tem uma vista. Giro aguarda arte adicional."
+                info.text = "Este movel so possui um angulo. O balcao PC Store ja permite girar em 4 direcoes."
                 return
             if not selecionado.em_edicao:
                 selecionado.iniciar_edicao()
