@@ -26,6 +26,11 @@ func configurar(id: String, posicao: Vector2, angulo: int = 0) -> void:
     orientacao = ANGULOS.find(angulo)
     if orientacao < 0:
         orientacao = 0
+    # Saves antigos podem referenciar um angulo cuja arte ainda nao existe.
+    # Normaliza para a primeira vista real antes de renderizar.
+    var disponiveis := CATALOGO.orientacoes_disponiveis(item_id)
+    if not disponiveis.is_empty() and not disponiveis.has(ANGULOS[orientacao]):
+        orientacao = ANGULOS.find(disponiveis[0])
     orientacao_confirmada = orientacao
     if is_node_ready():
         _atualizar()
