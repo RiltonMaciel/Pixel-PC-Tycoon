@@ -1,0 +1,51 @@
+﻿arquivo,categoria,largura_px,altura_px,pivo_x,pivo_y,escala_sugerida,orientacao,observacoes
+01_predios/farmacia.png,01_predios,612,528,226,436,"1.0 (112px/personagem, 132px/porta)",,"solo: Fachada u=(64,20) por módulo; lateral v=(64,-32); porta ~=132px; térreo"
+01_predios/loja_roupas.png,01_predios,580,524,216,435,"1.0 (112px/personagem, 132px/porta)",,"solo: Fachada u=(64,20) por módulo; lateral v=(64,-32); porta ~=132px; térreo"
+01_predios/mercadinho.png,01_predios,638,534,235,439,"1.0 (112px/personagem, 132px/porta)",,"solo: Fachada u=(64,20) por módulo; lateral v=(64,-32); porta ~=132px; térreo"
+01_predios/predio_comercial.png,01_predios,622,752,218,660,"1.0 (112px/personagem, 132px/porta)",,"solo: Fachada u=(64,20) por módulo; lateral v=(64,-32); porta ~=132px; dois pavimentos"
+01_predios/restaurante.png,01_predios,656,556,238,460,"1.0 (112px/personagem, 132px/porta)",,"solo: Fachada u=(64,20) por módulo; lateral v=(64,-32); porta ~=132px; térreo"
+02_vegetacao/arbusto_baixo.png,02_vegetacao,252,170,126,134,"1.0 (112px/personagem, 132px/porta)",,solo: Arbusto independente
+02_vegetacao/arvore_copa_alongada.png,02_vegetacao,202,414,106,380,"1.0 (112px/personagem, 132px/porta)",,solo: Copa e tronco completos; sem base de calçada
+02_vegetacao/arvore_copa_redonda.png,02_vegetacao,300,374,150,340,"1.0 (112px/personagem, 132px/porta)",,solo: Copa e tronco completos; sem base de calçada
+02_vegetacao/arvore_florida.png,02_vegetacao,264,350,138,316,"1.0 (112px/personagem, 132px/porta)",,solo: Copa e tronco completos; sem base de calçada
+02_vegetacao/canteiro_flores.png,02_vegetacao,316,198,164,166,"1.0 (112px/personagem, 132px/porta)",,solo: Recipiente próprio; sem calçada
+02_vegetacao/jardineira_retangular.png,02_vegetacao,316,194,164,162,"1.0 (112px/personagem, 132px/porta)",,solo: Recipiente próprio; sem calçada
+02_vegetacao/vaso_grande.png,02_vegetacao,160,182,78,152,"1.0 (112px/personagem, 132px/porta)",,solo: Vaso isolado
+02_vegetacao/vaso_pequeno.png,02_vegetacao,126,146,62,116,"1.0 (112px/personagem, 132px/porta)",,solo: Vaso isolado
+03_mobiliario_urbano/balizador.png,03_mobiliario_urbano,100,184,50,150,"1.0 (112px/personagem, 132px/porta)",,solo: Poste baixo independente
+03_mobiliario_urbano/banco_madeira.png,03_mobiliario_urbano,318,314,162,272,"1.0 (112px/personagem, 132px/porta)",,solo: Banco de duas ou três pessoas; sem calçada
+03_mobiliario_urbano/bicicleta.png,03_mobiliario_urbano,326,198,160,134,"1.0 (112px/personagem, 132px/porta)",,"solo: Bicicleta isolada; quadro, rodas e guidão"
+03_mobiliario_urbano/bicicletario.png,03_mobiliario_urbano,254,174,122,142,"1.0 (112px/personagem, 132px/porta)",,solo: Arcos independentes de bicicletas e calçada
+03_mobiliario_urbano/bueiro.png,03_mobiliario_urbano,236,142,118,100,"1.0 (112px/personagem, 132px/porta)",,solo: Tampa oblíqua sem piso ao redor
+03_mobiliario_urbano/coletor_reciclagem.png,03_mobiliario_urbano,160,224,78,192,"1.0 (112px/personagem, 132px/porta)",,"solo: Lixeira isolada, altura abaixo da cintura"
+03_mobiliario_urbano/cone.png,03_mobiliario_urbano,134,192,66,158,"1.0 (112px/personagem, 132px/porta)",,solo: Cone pequeno sem plataforma
+03_mobiliario_urbano/hidrante.png,03_mobiliario_urbano,154,190,72,158,"1.0 (112px/personagem, 132px/porta)",,solo: Hidrante urbano compacto
+03_mobiliario_urbano/lixeira_publica.png,03_mobiliario_urbano,160,224,78,192,"1.0 (112px/personagem, 132px/porta)",,"solo: Lixeira isolada, altura abaixo da cintura"
+03_mobiliario_urbano/placa_estacionamento.png,03_mobiliario_urbano,142,328,70,296,"1.0 (112px/personagem, 132px/porta)",,solo: Placa de pictograma sem publicidade
+03_mobiliario_urbano/placa_pedestres.png,03_mobiliario_urbano,166,324,82,292,"1.0 (112px/personagem, 132px/porta)",,solo: Placa de pictograma sem publicidade
+03_mobiliario_urbano/poste_iluminacao.png,03_mobiliario_urbano,114,466,56,434,"1.0 (112px/personagem, 132px/porta)",,solo: Poste apagado; sem calçada
+04_detalhes_comerciais/ar_condicionado_externo.png,04_detalhes_comerciais,252,208,34,94,"1.0 (112px/personagem, 132px/porta)",,parede: Pivô na face de montagem traseira
+04_detalhes_comerciais/cadeira_externa.png,04_detalhes_comerciais,178,244,100,212,"1.0 (112px/personagem, 132px/porta)",,solo: Cadeira sem mesa incorporada
+04_detalhes_comerciais/caixa_frutas.png,04_detalhes_comerciais,248,178,126,142,"1.0 (112px/personagem, 132px/porta)",,solo: Frutas em caixa; não incorpora calçada
+04_detalhes_comerciais/caixas_entrega.png,04_detalhes_comerciais,274,262,134,212,"1.0 (112px/personagem, 132px/porta)",,solo: Três caixas de papelão independentes
+04_detalhes_comerciais/cardapio_cavalete.png,04_detalhes_comerciais,192,256,102,224,"1.0 (112px/personagem, 132px/porta)",,solo: Quadro com marcas abstratas sem texto
+04_detalhes_comerciais/carrinho_carga.png,04_detalhes_comerciais,172,322,98,286,"1.0 (112px/personagem, 132px/porta)",,solo: Carrinho de carga vertical sem caixas
+04_detalhes_comerciais/guarda_sol.png,04_detalhes_comerciais,380,436,182,400,"1.0 (112px/personagem, 132px/porta)",,solo: Suporte próprio; sem mesa
+04_detalhes_comerciais/mesa_externa.png,04_detalhes_comerciais,220,222,110,188,"1.0 (112px/personagem, 132px/porta)",,"solo: Mesa vazia, independente"
+04_detalhes_comerciais/saco_lixo_fechado.png,04_detalhes_comerciais,164,172,82,140,"1.0 (112px/personagem, 132px/porta)",,solo: Saco fechado compacto
+04_detalhes_comerciais/vaso_pendurado.png,04_detalhes_comerciais,184,234,90,32,"1.0 (112px/personagem, 132px/porta)",,parede: Pivô no gancho de fixação superior
+05_veiculos/compacto_azul/compacto_azul_baixo_direita.png,05_veiculos,342,244,170,152,"1.0 (112px/personagem, 132px/porta)",baixo_direita,solo: blue; 4 direções desenhadas independentemente; frente=baixo_direita; roda no solo
+05_veiculos/compacto_azul/compacto_azul_baixo_esquerda.png,05_veiculos,338,264,168,162,"1.0 (112px/personagem, 132px/porta)",baixo_esquerda,solo: blue; 4 direções desenhadas independentemente; frente=baixo_esquerda; roda no solo
+05_veiculos/compacto_azul/compacto_azul_cima_direita.png,05_veiculos,338,258,168,154,"1.0 (112px/personagem, 132px/porta)",cima_direita,solo: blue; 4 direções desenhadas independentemente; frente=cima_direita; roda no solo
+05_veiculos/compacto_azul/compacto_azul_cima_esquerda.png,05_veiculos,342,238,170,146,"1.0 (112px/personagem, 132px/porta)",cima_esquerda,solo: blue; 4 direções desenhadas independentemente; frente=cima_esquerda; roda no solo
+05_veiculos/compacto_branco/compacto_branco_baixo_direita.png,05_veiculos,370,238,184,146,"1.0 (112px/personagem, 132px/porta)",baixo_direita,solo: white; 4 direções desenhadas independentemente; frente=baixo_direita; roda no solo
+05_veiculos/compacto_branco/compacto_branco_baixo_esquerda.png,05_veiculos,366,260,182,158,"1.0 (112px/personagem, 132px/porta)",baixo_esquerda,solo: white; 4 direções desenhadas independentemente; frente=baixo_esquerda; roda no solo
+05_veiculos/compacto_branco/compacto_branco_cima_direita.png,05_veiculos,366,262,182,158,"1.0 (112px/personagem, 132px/porta)",cima_direita,solo: white; 4 direções desenhadas independentemente; frente=cima_direita; roda no solo
+05_veiculos/compacto_branco/compacto_branco_cima_esquerda.png,05_veiculos,370,234,184,142,"1.0 (112px/personagem, 132px/porta)",cima_esquerda,solo: white; 4 direções desenhadas independentemente; frente=cima_esquerda; roda no solo
+05_veiculos/furgao_entregas/furgao_entregas_baixo_direita.png,05_veiculos,374,286,186,194,"1.0 (112px/personagem, 132px/porta)",baixo_direita,solo: van; 4 direções desenhadas independentemente; frente=baixo_direita; roda no solo
+05_veiculos/furgao_entregas/furgao_entregas_baixo_esquerda.png,05_veiculos,370,312,184,210,"1.0 (112px/personagem, 132px/porta)",baixo_esquerda,solo: van; 4 direções desenhadas independentemente; frente=baixo_esquerda; roda no solo
+05_veiculos/furgao_entregas/furgao_entregas_cima_direita.png,05_veiculos,370,290,184,186,"1.0 (112px/personagem, 132px/porta)",cima_direita,solo: van; 4 direções desenhadas independentemente; frente=cima_direita; roda no solo
+05_veiculos/furgao_entregas/furgao_entregas_cima_esquerda.png,05_veiculos,374,270,186,178,"1.0 (112px/personagem, 132px/porta)",cima_esquerda,solo: van; 4 direções desenhadas independentemente; frente=cima_esquerda; roda no solo
+06_estados/placa_aberto.png,06_estados,228,228,112,34,"1.0 (112px/personagem, 132px/porta)",,parede: Pivô de fixação; estados com canvas idêntico
+06_estados/placa_fechado.png,06_estados,228,228,112,34,"1.0 (112px/personagem, 132px/porta)",,parede: Pivô de fixação; estados com canvas idêntico
+06_estados/poste_iluminacao_aceso.png,06_estados,114,466,56,434,"1.0 (112px/personagem, 132px/porta)",,solo: Mesmo poste/canvas e pivô entre estados; sem halo

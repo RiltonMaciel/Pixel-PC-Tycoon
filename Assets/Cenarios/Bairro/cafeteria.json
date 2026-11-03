@@ -1,0 +1,33 @@
+{
+  "source_sha256": "0af8bb7b16bd066f15a3681d74e1ee1f5ab807a5eb0778d477bb5b6698e526d4",
+  "source_size": [
+    1152,
+    768
+  ],
+  "affine": {
+    "shear_y": 0.16331251399507374,
+    "scale_y": 1.05177177633473,
+    "margin": 8
+  },
+  "front_left": [
+    198,
+    709.0079991842871
+  ],
+  "front_right": [
+    762,
+    885.2579991842871
+  ],
+  "back_right": [
+    1049,
+    741.7579991842871
+  ],
+  "door_top": [
+    652,
+    653.7839520488787
+  ],
+  "door_bottom": [
+    652,
+    846.2581871181344
+  ],
+  "note": "Geometric adaptation, not a redrawn building. Original retained in Fontes."
+}

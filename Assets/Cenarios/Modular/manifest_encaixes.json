@@ -1,0 +1,141 @@
+{
+  "kit": "Pixel PC Tycoon — Interior modular original v1.0",
+  "projection": "isometric_2_1",
+  "scale": {
+    "floor_tile_px": [
+      128,
+      64
+    ],
+    "iso_u_vector_px": [
+      64,
+      32
+    ],
+    "iso_v_vector_px": [
+      -64,
+      32
+    ]
+  },
+  "assets": [
+    {
+      "id": "floor_a",
+      "file": "01_pisos/piso_madeira_clara_a.png",
+      "size_px": [
+        128,
+        64
+      ],
+      "anchor": "top vertex at (64,0); tile origin is top vertex"
+    },
+    {
+      "id": "floor_b",
+      "file": "01_pisos/piso_madeira_clara_b.png",
+      "size_px": [
+        128,
+        64
+      ],
+      "anchor": "top vertex at (64,0); tile origin is top vertex"
+    },
+    {
+      "id": "floor_c",
+      "file": "01_pisos/piso_madeira_clara_c.png",
+      "size_px": [
+        128,
+        64
+      ],
+      "anchor": "top vertex at (64,0); tile origin is top vertex"
+    },
+    {
+      "id": "wall_left",
+      "file": "02_paredes/parede_diagonal_esquerda.png",
+      "size_px": [
+        128,
+        192
+      ],
+      "floor_contact_px": [
+        [
+          96,
+          144
+        ],
+        [
+          32,
+          176
+        ]
+      ],
+      "wall_height_px": 96,
+      "anchor": "base starting at (96,144), wall continues -64,+32; paste (world_start_x-96, world_start_y-144)"
+    },
+    {
+      "id": "wall_right",
+      "file": "02_paredes/parede_diagonal_direita.png",
+      "size_px": [
+        128,
+        192
+      ],
+      "floor_contact_px": [
+        [
+          32,
+          144
+        ],
+        [
+          96,
+          176
+        ]
+      ],
+      "wall_height_px": 96,
+      "anchor": "base starting at (32,144), wall continues +64,+32; paste (world_start_x-32, world_start_y-144)"
+    },
+    {
+      "id": "inside_corner",
+      "file": "02_paredes/canto_interno_uniao.png",
+      "size_px": [
+        128,
+        192
+      ],
+      "floor_contact_px": [
+        [
+          64,
+          144
+        ]
+      ],
+      "anchor": "at back wall junction: paste (world_corner_x-64, world_corner_y-144); draw after walls"
+    },
+    {
+      "id": "entry_threshold",
+      "file": "03_entrada/soleira_entrada_2_modulos.png",
+      "size_px": [
+        192,
+        128
+      ],
+      "floor_contact_px": [
+        [
+          160,
+          40
+        ],
+        [
+          32,
+          104
+        ]
+      ],
+      "length_in_modules": 2,
+      "anchor": "right/high start at (160,40); toward left/down 128,64; paste (world_start_x-160, world_start_y-40); inside offset -7,-4"
+    }
+  ],
+  "assembly_example": {
+    "floor_modules_uv": [
+      6,
+      5
+    ],
+    "corner_at_px": [
+      492,
+      218
+    ],
+    "draw_order": [
+      "floor",
+      "left/right wall segments",
+      "inside_corner",
+      "entry_threshold"
+    ],
+    "threshold": "edge u=N, v=1..3"
+  },
+  "validation": "Sprites are exact size RGBA PNG, alpha 0 beyond geometry and 255 on opaque pixels; no UI, tiles have no per-tile frame.",
+  "notes": "Repeat with nearest-neighbor filtering; do not rescale each piece independently. For base wall outline use floor_contact_px. Floor visual plank joints continue in a repeating tile; variants differ only subtly."
+}

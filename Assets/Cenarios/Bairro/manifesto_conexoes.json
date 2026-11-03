@@ -1,0 +1,95 @@
+{
+  "tile_size": {
+    "width": 128,
+    "height": 64
+  },
+  "projection": "isometric 2:1",
+  "vertices": {
+    "top": [
+      64,
+      0
+    ],
+    "right": [
+      128,
+      32
+    ],
+    "bottom": [
+      64,
+      64
+    ],
+    "left": [
+      0,
+      32
+    ]
+  },
+  "steps": {
+    "plus": [
+      64,
+      32
+    ],
+    "minus": [
+      -64,
+      32
+    ]
+  },
+  "categories": {
+    "calcada": [
+      "calcada_concreto_a",
+      "calcada_concreto_b",
+      "calcada_concreto_c"
+    ],
+    "asfalto": [
+      "asfalto_a",
+      "asfalto_b",
+      "asfalto_c"
+    ],
+    "transicoes": [
+      "transicao_borda_topo",
+      "transicao_borda_direita",
+      "transicao_borda_base",
+      "transicao_borda_esquerda",
+      "transicao_canto_topo_direita",
+      "transicao_canto_direita_base",
+      "transicao_canto_base_esquerda",
+      "transicao_canto_esquerda_topo"
+    ],
+    "travessia": [
+      "travessia_orientacao_a_lado_1",
+      "travessia_orientacao_a_lado_2",
+      "acesso_calcada_orientacao_a",
+      "travessia_orientacao_b_lado_1",
+      "travessia_orientacao_b_lado_2",
+      "acesso_calcada_orientacao_b"
+    ]
+  },
+  "recommended_connections": {
+    "calcada_concreto_*": [
+      "calcada_concreto_*",
+      "transicao_borda_*",
+      "transicao_canto_*",
+      "acesso_calcada_orientacao_a",
+      "acesso_calcada_orientacao_b"
+    ],
+    "asfalto_*": [
+      "asfalto_*",
+      "travessia_orientacao_a_lado_1",
+      "travessia_orientacao_a_lado_2",
+      "travessia_orientacao_b_lado_1",
+      "travessia_orientacao_b_lado_2",
+      "transicao_borda_*",
+      "transicao_canto_*"
+    ],
+    "transicao_borda_topo": "Use with sidewalk on top side and asphalt below",
+    "transicao_borda_direita": "Use with sidewalk on right side and asphalt on left",
+    "transicao_borda_base": "Use with asphalt on top side and sidewalk below",
+    "transicao_borda_esquerda": "Use with sidewalk on left side and asphalt on right",
+    "transicao_canto_topo_direita": "Sidewalk occupies top and right sides",
+    "transicao_canto_direita_base": "Sidewalk occupies right and bottom sides",
+    "transicao_canto_base_esquerda": "Sidewalk occupies bottom and left sides",
+    "transicao_canto_esquerda_topo": "Sidewalk occupies left and top sides",
+    "travessia_orientacao_a_lado_1 + lado_2": "Pair to form a 2-module-wide street crossing along orientation A",
+    "travessia_orientacao_b_lado_1 + lado_2": "Pair to form a 2-module-wide street crossing along orientation B",
+    "acesso_calcada_orientacao_a": "Use at sidewalk entry/exit aligned with orientation A crossing",
+    "acesso_calcada_orientacao_b": "Use at sidewalk entry/exit aligned with orientation B crossing"
+  }
+}

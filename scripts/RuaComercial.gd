@@ -1,76 +1,80 @@
 extends Node2D
-# Pixel PC Tycoon V0.4.8 - rua aprovada, personagens e balcao independentes.
-const BG = preload("res://Assets/Cenarios/Rua_Comercial_Aprovada.png")
-const SHOP_BG = preload("res://Assets/Cenarios/Loja_Base_Aprovada.png")
+
+const BAIRRO = preload("res://scripts/BairroComercial.gd")
 const CATALOGO = preload("res://scripts/Imoveis/CatalogoImoveis.gd")
+const SPRITES = preload("res://scripts/Imoveis/CatalogoSprites.gd")
 const GERENCIADOR = preload("res://scripts/Imoveis/GerenciadorImoveis.gd")
+const MOVEL = preload("res://scripts/Moveis/MovelIsometrico.gd")
+const PORTA = preload("res://scripts/PortaLoja.gd")
+const PERSONAGEM = preload("res://scripts/PersonagemAnimado.gd")
+const INTERIOR = preload("res://scripts/Imoveis/InteriorModular.gd")
 const LOJA_ID := "pc_store_001"
-const PLAYER = preload("res://Assets/Personagens/jogador_temporario.png")
-const CUSTOMER = preload("res://Assets/Personagens/cliente_temporario.png")
-const COUNTER = preload("res://Assets/Moveis/balcao_pixel_art.png")
-var INTERIOR: PackedVector2Array = PackedVector2Array([Vector2(310,334),Vector2(738,190),Vector2(1138,332),Vector2(1115,437),Vector2(910,511),Vector2(707,583),Vector2(485,500),Vector2(310,408)])
-var SIDEWALK: PackedVector2Array = PackedVector2Array([Vector2(410,814),Vector2(1090,547),Vector2(1515,600),Vector2(1515,704),Vector2(465,970),Vector2(40,895)])
-var DOOR: PackedVector2Array = PackedVector2Array([Vector2(792,468),Vector2(980,475),Vector2(1045,687),Vector2(838,723)])
-var ROUTE: PackedVector2Array = PackedVector2Array([Vector2(1120,697),Vector2(984,638),Vector2(904,596),Vector2(877,558),Vector2(805,510),Vector2(725,535),Vector2(805,510),Vector2(877,558),Vector2(904,596),Vector2(984,638),Vector2(1120,697)])
-var pos_player = Vector2(920,715)
-var pos_customer = Vector2(1120,697)
-var pos_counter = Vector2(670,405)
-var committed_counter = Vector2(670,405)
-var money = 6500
-var owns_counter = false
-var placing = false
-var buying = false
-var move = Vector2.ZERO
-var finger = -1
-var route_index = 0
-var route_wait = 0.0
-var player: Sprite2D
-var customer: Sprite2D
-var counter: Sprite2D
+
+var cadastro: Dictionary = CATALOGO.buscar(LOJA_ID)
+var gestor_imoveis = GERENCIADOR.new()
+var save_path: String = GERENCIADOR.SAVE_PATH
+var legacy_path: String = GERENCIADOR.LEGACY_PATH
+var pos_player: Vector2 = cadastro["saida_externa"]
+var pos_customer: Vector2 = cadastro["rota_cliente"][0]
+var money := 6500
+var indoors := false
+var transitioning := false
+var save_bloqueado := false
+var move := Vector2.ZERO
+var finger := -1
+var drag_finger := -1
+var drag_offset := Vector2.ZERO
+var route_index := 0
+var route_wait := 0.0
+var guardados: Array = []
+var recuperando := -1
+var moveis: Array[MOVEL] = []
+var selecionado: MOVEL
+var comprando := false
+var player: PERSONAGEM
+var customer: PERSONAGEM
 var cam: Camera2D
 var layer: CanvasLayer
 var top_label: Label
 var info: Label
 var popup: AcceptDialog
-var pad_center = Vector2.ZERO
-var gestor_imoveis = GERENCIADOR.new()
-var indoors := false
-var transitioning := false
-var bg_sprite: Sprite2D
-var door_sprite: Sprite2D
-const DOOR_FRAMES = [preload("res://Assets/Portas/porta_loja_00.svg"),preload("res://Assets/Portas/porta_loja_01.svg"),preload("res://Assets/Portas/porta_loja_02.svg"),preload("res://Assets/Portas/porta_loja_03.svg"),preload("res://Assets/Portas/porta_loja_04.svg"),preload("res://Assets/Portas/porta_loja_05.svg"),preload("res://Assets/Portas/porta_loja_06.svg")]
-var walk_phase := 0.0
+var pad_center := Vector2.ZERO
+var bairro: BAIRRO
+var sala: INTERIOR
+var porta: PORTA
+var fade: ColorRect
+var edit_bar: HBoxContainer
+var exit_marker: Label
+var shop_list: VBoxContainer
 
 func _ready() -> void:
-    bg_sprite = Sprite2D.new()
-    bg_sprite.texture = BG
-    bg_sprite.centered = false
-    bg_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-    bg_sprite.z_index = -10
-    add_child(bg_sprite)
-    door_sprite = Sprite2D.new()
-    door_sprite.texture = DOOR_FRAMES[0]
-    door_sprite.position = Vector2(924,618)
-    door_sprite.scale = Vector2(1.65,1.65)
-    door_sprite.z_index = 12
-    door_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-    door_sprite.visible = false
-    add_child(door_sprite)
-    player = _sprite(PLAYER, pos_player, 5)
+    RenderingServer.set_default_clear_color(Color("#192331"))
+    bairro = BAIRRO.new()
+    add_child(bairro)
+    porta = PORTA.new()
+    porta.position = BAIRRO.LOJA_POS
+    porta.scale = Vector2.ONE * BAIRRO.LOJA_ESCALA
+    porta.z_index = int(BAIRRO.local_loja(Vector2(650,760)).y)
+    add_child(porta)
+    sala = INTERIOR.new()
+    add_child(sala)
+    sala.configurar(cadastro)
+    sala.visible = false
+    player = _personagem("protagonista",pos_player)
     player.name = "Jogador_Independente"
-    customer = _sprite(CUSTOMER, pos_customer, 6)
+    customer = _personagem("cliente_estudante",pos_customer)
     customer.name = "Cliente_Independente"
-    counter = _sprite(COUNTER, pos_counter, 4)
-    counter.name = "Balcao_Independente"
-    counter.visible = false
+    exit_marker = Label.new()
+    exit_marker.text = "SAIDA [A]"
+    exit_marker.position = Vector2(cadastro["saida_interna"]) + Vector2(-32,0)
+    exit_marker.add_theme_font_size_override("font_size",14)
+    exit_marker.z_index = 1
+    exit_marker.visible = false
+    add_child(exit_marker)
     cam = Camera2D.new()
-    cam.zoom = Vector2(0.57,0.57)
-    cam.limit_left = 0
-    cam.limit_top = 0
-    cam.limit_right = 1536
-    cam.limit_bottom = 1024
     cam.position = pos_player
     add_child(cam)
+    _camera_exterior()
     layer = CanvasLayer.new()
     add_child(layer)
     _hud()
@@ -79,97 +83,81 @@ func _ready() -> void:
     _load()
     _refresh()
 
-func _sprite(tex: Texture2D, at: Vector2, depth: int) -> Sprite2D:
-    var s := Sprite2D.new()
-    s.texture = tex
-    s.position = at
-    s.z_index = depth
-    s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-    if tex != COUNTER:
-        s.scale = Vector2(1.6,1.6)
-        s.offset = Vector2(0,-23)
-    else:
-        s.offset = Vector2(0,-39)
-    add_child(s)
-    return s
+func _personagem(id: String, at: Vector2) -> PERSONAGEM:
+    var sprite := PERSONAGEM.new()
+    sprite.configurar(id)
+    sprite.position = at
+    sprite.atualizar(Vector2.ZERO,0)
+    add_child(sprite)
+    return sprite
 
-func _walkable(at: Vector2, furniture: bool = true) -> bool:
+func _no_piso(at: Vector2) -> bool:
     if indoors:
-        var dims := SHOP_BG.get_size()
-        return at.x >= dims.x*0.19 and at.x <= dims.x*0.81 and at.y >= dims.y*0.24 and at.y <= dims.y*0.76 and (not furniture or not owns_counter or at.distance_to(committed_counter)>42)
-    if at.x < 8 or at.y < 8 or at.x > 1528 or at.y > 1016:
-        return false
-    for offset in [Vector2.ZERO,Vector2(8,0),Vector2(-8,0),Vector2(0,8),Vector2(0,-8)]:
-        var p: Vector2 = at + offset
-        if not (Geometry2D.is_point_in_polygon(p,SIDEWALK) or (p.distance_to(Vector2(920,695)) < 110 and p.y >= 650)) :
+        return Geometry2D.is_point_in_polygon(at,cadastro["piso_interno"])
+    return BAIRRO.piso_livre(at) and bairro.vizinhanca.piso_livre(at)
+
+func _walkable(at: Vector2) -> bool:
+    for offset in [Vector2.ZERO,Vector2(10,0),Vector2(-10,0),Vector2(0,10),Vector2(0,-10)]:
+        if not _no_piso(at + offset):
             return false
-    if furniture and owns_counter and not buying and at.distance_to(committed_counter) < 42:
-        return false
+    if indoors:
+        for movel in moveis:
+            if movel == selecionado and comprando:
+                continue
+            var ponto := movel.posicao_confirmada if movel.em_edicao else movel.position
+            if Geometry2D.is_point_in_polygon(at,movel.poligono_colisao(ponto,8,movel.em_edicao)):
+                return false
     return true
 
 func _physics_process(delta: float) -> void:
-    var direction := (move + Input.get_vector("ui_left","ui_right","ui_up","ui_down")).limit_length(1)
+    var bloqueado := transitioning or popup.visible or save_bloqueado or (selecionado != null and selecionado.em_edicao)
+    var direction := Vector2.ZERO if bloqueado else (move + Input.get_vector("ui_left","ui_right","ui_up","ui_down")).limit_length(1)
     var distance := direction * 205.0 * delta
-    var steps := maxi(1,ceili(distance.length()/5.0))
+    var anterior := pos_player
+    var steps := maxi(1,ceili(distance.length() / 5.0))
     for i in range(steps):
-        var step := distance/float(steps)
-        var next_x: Vector2 = pos_player + Vector2(step.x,0)
-        if _walkable(next_x):
-            pos_player = next_x
-        var next_y: Vector2 = pos_player + Vector2(0,step.y)
-        if _walkable(next_y):
-            pos_player = next_y
+        var step := distance / float(steps)
+        if _walkable(pos_player + Vector2(step.x,0)):
+            pos_player.x += step.x
+        if _walkable(pos_player + Vector2(0,step.y)):
+            pos_player.y += step.y
     player.position = pos_player
-    if direction.length() > 0.05:
-        walk_phase += delta * 13.0
-        player.offset.y = -23.0 + sin(walk_phase)*2.8
-        player.rotation = sin(walk_phase)*0.035
-    else:
-        player.offset.y = lerpf(player.offset.y,-23.0,minf(1.0,delta*12.0))
-        player.rotation = lerpf(player.rotation,0.0,minf(1.0,delta*12.0))
-    if direction.x != 0:
-        player.flip_h = direction.x < 0
-    player.z_index = clampi(int(pos_player.y/100),1,9)
-    if placing:
-        pos_counter = pos_player + Vector2(0,-62)
-        counter.position = pos_counter
-        counter.modulate = Color(1,1,1,0.6) if _can_place(pos_counter) else Color(1,0.3,0.3,0.6)
-    counter.z_index = clampi(int(pos_counter.y/100),1,9)
-    if not indoors:
+    player.atualizar(pos_player - anterior,delta)
+    if not indoors and not transitioning and not save_bloqueado:
         _npc(delta)
-    cam.position = cam.position.lerp(pos_player,minf(1,delta*5))
-
-func _can_place(at: Vector2) -> bool:
-    for offset in [Vector2(-38,-30),Vector2(38,-30),Vector2(-38,30),Vector2(38,30)]:
-        if not _walkable(at+offset,false):
-            return false
-    if Geometry2D.is_point_in_polygon(at,DOOR) or at.distance_to(pos_player)<45:
-        return false
     if not indoors:
-        for waypoint in ROUTE:
-            if at.distance_to(waypoint)<70:
-                return false
-    return true
+        cam.position = cam.position.lerp(pos_player,minf(1.0,delta * 5.0))
 
 func _npc(delta: float) -> void:
     if route_wait > 0:
         route_wait -= delta
+        customer.atualizar(Vector2.ZERO,delta)
         return
-    var diff: Vector2 = ROUTE[route_index]-pos_customer
+    var route: PackedVector2Array = cadastro["rota_cliente"]
+    var diff := route[route_index] - pos_customer
     if diff.length() < 5:
-        route_index = (route_index+1)%ROUTE.size()
-        if route_index == 6:
-            route_wait = 1.5
+        route_index = (route_index + 1) % route.size()
+        route_wait = 1.0
         return
-    var step := diff.normalized()*minf(68*delta,diff.length())
-    if _walkable(pos_customer+step):
+    var step := diff.normalized() * minf(68 * delta,diff.length())
+    if _walkable(pos_customer + step):
         pos_customer += step
         customer.position = pos_customer
-        if step.x != 0:
-            customer.flip_h = step.x < 0
-        customer.z_index = clampi(int(pos_customer.y/100),1,9)
+        customer.atualizar(step,delta)
     else:
-        route_wait = 1.5
+        push_warning("Rota do cliente bloqueada; retornando ao ponto anterior.")
+        route_index = (route_index + 1) % route.size()
+        route_wait = 1.0
+
+func _button(label: String, callback: Callable, parent: Node) -> Button:
+    var button := Button.new()
+    button.text = label
+    button.custom_minimum_size = Vector2(0,44)
+    button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    button.add_theme_font_size_override("font_size",12)
+    button.pressed.connect(callback)
+    parent.add_child(button)
+    return button
 
 func _hud() -> void:
     var header := PanelContainer.new()
@@ -181,250 +169,442 @@ func _hud() -> void:
     top_label.add_theme_font_size_override("font_size",17)
     v.add_child(top_label)
     info = Label.new()
-    info.text = "Microloja | Rua comercial | V0.4.8"
-    info.add_theme_font_size_override("font_size",12)
+    info.custom_minimum_size = Vector2(380,40)
+    info.text = "Rua | Use as faixas para atravessar. A na PC Store entra."
+    info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    info.add_theme_font_size_override("font_size",13)
     v.add_child(info)
     var menu := HBoxContainer.new()
     menu.name = "Menu"
     layer.add_child(menu)
     for label in ["Loja","Cliente","Montagem","Estoque","Menu"]:
-        var b := Button.new()
-        b.text = label
-        b.add_theme_font_size_override("font_size",11)
-        b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-        b.pressed.connect(_menu.bind(label))
-        menu.add_child(b)
-    var action := Button.new()
+        _button(label,_menu.bind(label),menu)
+    var action := _button("A",_interact,layer)
     action.name = "Action"
-    action.text = "A"
     action.add_theme_font_size_override("font_size",24)
-    action.pressed.connect(_interact)
-    layer.add_child(action)
     var pad := Panel.new()
     pad.name = "Pad"
     pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var pad_style := StyleBoxFlat.new()
+    pad_style.bg_color = Color("#20364b")
+    pad_style.border_color = Color("#7daccb")
+    pad_style.set_border_width_all(3)
+    pad_style.set_corner_radius_all(54)
+    pad.add_theme_stylebox_override("panel",pad_style)
     layer.add_child(pad)
     var arrows := Label.new()
-    arrows.name = "Arrows"
     arrows.text = "    ▲\n◀       ▶\n    ▼"
+    arrows.name = "Arrows"
+    arrows.mouse_filter = Control.MOUSE_FILTER_IGNORE
     arrows.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     arrows.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     pad.add_child(arrows)
     popup = AcceptDialog.new()
-    popup.title = "Loja de moveis"
-    popup.dialog_text = "Balcao R$ 450 | Revenda R$ 225"
+    popup.title = "Moveis e equipamentos"
+    popup.ok_button_text = "Fechar"
+    var scroll := ScrollContainer.new()
+    scroll.custom_minimum_size = Vector2(340,300)
+    scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    popup.add_child(scroll)
+    shop_list = VBoxContainer.new()
+    shop_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    scroll.add_child(shop_list)
     layer.add_child(popup)
-    var actions := VBoxContainer.new()
-    popup.add_child(actions)
-    for label in ["Comprar balcao","Mover balcao","Vender balcao"]:
-        var b := Button.new()
-        b.text = label
-        b.pressed.connect(_shop.bind(label))
-        actions.add_child(b)
+    edit_bar = HBoxContainer.new()
+    edit_bar.name = "Edicao"
+    layer.add_child(edit_bar)
+    for label in ["Mover","Girar","Vender","Cancelar","OK"]:
+        _button(label,_edit_action.bind(label),edit_bar)
+    edit_bar.visible = false
+    fade = ColorRect.new()
+    fade.color = Color(0,0,0,0)
+    fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    layer.add_child(fade)
 
 func _layout() -> void:
-    var s := get_viewport_rect().size
+    var size := get_viewport_rect().size
     var header := layer.get_node("Header") as Control
     header.position = Vector2(6,6)
-    header.size = Vector2(s.x-12,64)
+    header.size = Vector2(size.x - 12,82)
     var menu := layer.get_node("Menu") as Control
-    menu.position = Vector2(6,s.y-66)
-    menu.size = Vector2(s.x-12,58)
+    menu.position = Vector2(6,size.y - 66)
+    menu.size = Vector2(size.x - 12,58)
     var pad := layer.get_node("Pad") as Control
-    pad.position = Vector2(18,s.y-187)
+    pad.position = Vector2(18,size.y - 187)
     pad.size = Vector2(108,108)
     (pad.get_node("Arrows") as Control).size = pad.size
-    pad_center = pad.position+pad.size*0.5
+    pad_center = pad.position + pad.size * 0.5
     var action := layer.get_node("Action") as Control
-    action.position = Vector2(s.x-104,s.y-166)
+    action.position = Vector2(size.x - 104,size.y - 166)
     action.size = Vector2(75,75)
+    edit_bar.position = Vector2(6,100)
+    edit_bar.size = Vector2(size.x - 12,48)
+    fade.size = size
+    if indoors:
+        _camera_interior()
+
+func _camera_interior() -> void:
+    var bounds := sala.limites()
+    var viewport := get_viewport_rect().size
+    var zoom := minf((viewport.x - 24) / bounds.size.x,(viewport.y - 330) / bounds.size.y)
+    cam.zoom = Vector2.ONE * zoom
+    cam.limit_left = -10000
+    cam.limit_top = -10000
+    cam.limit_right = 10000
+    cam.limit_bottom = 10000
+    cam.position = bounds.get_center() + Vector2(0,24 / zoom)
+    cam.force_update_scroll()
+
+func _camera_exterior() -> void:
+    var bounds := BAIRRO.limites()
+    cam.zoom = Vector2(0.65,0.65)
+    cam.limit_left = int(bounds.position.x)
+    cam.limit_top = int(bounds.position.y)
+    cam.limit_right = int(bounds.end.x)
+    cam.limit_bottom = int(bounds.end.y)
+    cam.force_update_scroll()
 
 func _input(event: InputEvent) -> void:
-    if popup != null and popup.visible:
-        move = Vector2.ZERO
-        finger = -1
-        return
-    if event is InputEventScreenTouch:
-        var t := event as InputEventScreenTouch
-        if t.pressed and t.position.distance_to(pad_center)<58:
-            finger = t.index
-            _direction(t.position)
-            get_viewport().set_input_as_handled()
-        elif not t.pressed and t.index == finger:
+    # Captura liberacoes mesmo quando o dedo termina sobre um botao.
+    if event is InputEventScreenTouch and not event.pressed:
+        if event.index == finger:
             finger = -1
             move = Vector2.ZERO
-            get_viewport().set_input_as_handled()
+        if event.index == drag_finger:
+            drag_finger = -1
     elif event is InputEventScreenDrag:
-        var d := event as InputEventScreenDrag
-        if d.index == finger:
-            _direction(d.position)
+        if event.index == finger:
+            _direction(event.position)
             get_viewport().set_input_as_handled()
+        elif event.index == drag_finger:
+            _drag(event.position)
+            get_viewport().set_input_as_handled()
+    elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+        if finger == -2:
+            finger = -1
+            move = Vector2.ZERO
+        if drag_finger == -2:
+            drag_finger = -1
+    elif event is InputEventMouseMotion:
+        if finger == -2:
+            _direction(event.position)
+            get_viewport().set_input_as_handled()
+        elif drag_finger == -2:
+            _drag(event.position)
+            get_viewport().set_input_as_handled()
+
+func _unhandled_input(event: InputEvent) -> void:
+    if transitioning or popup.visible or save_bloqueado:
+        return
+    if event.is_action_pressed("ui_cancel"):
+        _cancel_edit()
+    elif event.is_action_pressed("ui_accept"):
+        _interact()
+    elif event is InputEventScreenTouch and event.pressed:
+        _pointer_down(event.position,event.index)
+    elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and event.device != -1:
+        _pointer_down(event.position,-2)
+
+func _pointer_down(screen: Vector2, pointer: int) -> void:
+    if screen.distance_to(pad_center) < 58:
+        finger = pointer
+        _direction(screen)
+        return
+    if not indoors:
+        return
+    var world := get_canvas_transform().affine_inverse() * screen
+    if selecionado != null and selecionado.em_edicao:
+        drag_finger = pointer
+        drag_offset = selecionado.position - world if selecionado.contem_ponto(world) else Vector2.ZERO
+        _drag(screen)
+        return
+    var encontrado: MOVEL
+    for movel in moveis:
+        if movel.contem_ponto(world) and (encontrado == null or movel.position.y > encontrado.position.y):
+            encontrado = movel
+    selecionado = encontrado
+    edit_bar.visible = selecionado != null
+    if selecionado != null:
+        info.text = "Escolha Mover, Girar, Vender ou Cancelar."
 
 func _direction(at: Vector2) -> void:
-    var diff: Vector2 = at-pad_center
-    move = diff.normalized() if diff.length()>15 else Vector2.ZERO
+    var diff := at - pad_center
+    move = diff.normalized() if diff.length() > 15 else Vector2.ZERO
+
+func _snap(at: Vector2) -> Vector2:
+    var grid := Transform2D(INTERIOR.U * 0.25,INTERIOR.V * 0.25,cadastro["origem"])
+    return grid * (grid.affine_inverse() * at).round()
+
+func _drag(screen: Vector2) -> void:
+    if selecionado == null or not selecionado.em_edicao:
+        return
+    selecionado.position = _snap(get_canvas_transform().affine_inverse() * screen + drag_offset)
+    selecionado.indicar_validade(_can_place(selecionado))
+
+func _can_place(movel: MOVEL) -> bool:
+    if not indoors:
+        return false
+    var shape := movel.poligono_colisao(movel.position,4)
+    var saida: Vector2 = cadastro["saida_interna"]
+    for ponto in shape:
+        if not Geometry2D.is_point_in_polygon(ponto,cadastro["piso_interno"]):
+            return false
+    if Geometry2D.is_point_in_polygon(pos_player,movel.poligono_colisao(movel.position,24)):
+        return false
+    # Reserva circulacao e acesso a porta, inclusive quando a base e alongada.
+    if Geometry2D.is_point_in_polygon(saida,movel.poligono_colisao(movel.position,40)):
+        return false
+    for outro in moveis:
+        if outro != movel and not Geometry2D.intersect_polygons(shape,outro.poligono_colisao(outro.position,4)).is_empty():
+            return false
+    return true
+
+func _buy(id: String = "balcao_pc_store", estoque: int = -1) -> void:
+    popup.hide()
+    if not indoors or transitioning or save_bloqueado or selecionado != null:
+        info.text = "Entre na loja e conclua a edicao antes de comprar."
+        return
+    var preco := int(SPRITES.dados(id)["preco"]) if estoque < 0 else 0
+    if money < preco:
+        info.text = "Dinheiro insuficiente."
+        return
+    recuperando = estoque
+    var angle := int(guardados[estoque]["angulo"]) if estoque >= 0 else 0
+    selecionado = _create_furniture(id,_snap(pos_player + Vector2(-96,-48)),angle)
+    comprando = true
+    selecionado.iniciar_edicao()
+    edit_bar.visible = true
+    selecionado.indicar_validade(_can_place(selecionado))
+    _stop_input()
+    info.text = "Arraste no piso. Girar troca a vista; OK confirma."
+
+func _create_furniture(id: String, at: Vector2, angle: int) -> MOVEL:
+    var movel := MOVEL.new()
+    movel.configurar(id,at,angle)
+    add_child(movel)
+    movel.visible = indoors
+    moveis.append(movel)
+    return movel
+
+func _edit_action(action: String) -> void:
+    if selecionado == null or transitioning or save_bloqueado:
+        return
+    match action:
+        "Mover", "Girar":
+            if action == "Girar" and SPRITES.orientacoes_disponiveis(selecionado.item_id).size() < 2:
+                info.text = "Este sprite tem uma vista. Giro aguarda arte adicional."
+                return
+            if not selecionado.em_edicao:
+                selecionado.iniciar_edicao()
+            if action == "Girar":
+                selecionado.girar()
+            selecionado.indicar_validade(_can_place(selecionado))
+            _stop_input()
+            info.text = "Arraste o movel; OK confirma; Cancelar desfaz."
+        "Cancelar":
+            _cancel_edit()
+        "OK":
+            if not _can_place(selecionado):
+                info.text = "Posicao invalida: libere piso, jogador e saida."
+                return
+            if comprando and recuperando < 0:
+                var preco := int(SPRITES.dados(selecionado.item_id)["preco"])
+                if money < preco:
+                    info.text = "Dinheiro insuficiente."
+                    return
+                money -= preco
+            if recuperando >= 0:
+                guardados.remove_at(recuperando)
+                recuperando = -1
+            selecionado.confirmar()
+            selecionado = null
+            comprando = false
+            recuperando = -1
+            edit_bar.hide()
+            _stop_input()
+            _refresh()
+            if _save():
+                info.text = "Movel posicionado e salvo."
+        "Vender":
+            if comprando:
+                _cancel_edit()
+                return
+            var dados := SPRITES.dados(selecionado.item_id)
+            money += int(dados.get("revenda",int(dados["preco"]) / 2))
+            moveis.erase(selecionado)
+            selecionado.queue_free()
+            selecionado = null
+            edit_bar.hide()
+            _stop_input()
+            _refresh()
+            if _save():
+                info.text = "Movel vendido e progresso salvo."
+
+func _cancel_edit() -> void:
+    if selecionado == null:
+        return
+    if comprando:
+        moveis.erase(selecionado)
+        selecionado.queue_free()
+    else:
+        selecionado.cancelar()
+    selecionado = null
+    comprando = false
+    edit_bar.hide()
+    _stop_input()
+    info.text = "Edicao cancelada; nada foi cobrado ou alterado."
 
 func _interact() -> void:
-    if transitioning:
+    if transitioning or popup.visible or save_bloqueado:
         return
-    var cadastro: Dictionary = CATALOGO.buscar(LOJA_ID)
-    var porta: Vector2 = cadastro.get("porta_externa", Vector2(920,695))
-    if not placing and indoors and pos_player.y > SHOP_BG.get_height()*0.57:
+    if selecionado != null:
+        _edit_action("OK")
+    elif indoors and pos_player.distance_to(cadastro["saida_interna"]) < 80:
         _change_area(false)
-        return
-    if not placing and not indoors and pos_player.distance_to(porta) < 155:
+    elif not indoors and pos_player.distance_to(cadastro["porta_externa"]) < 85:
         _change_area(true)
-        return
-    if placing:
-        if _can_place(pos_counter):
-            placing = false
-            buying = false
-            committed_counter = pos_counter
-            counter.modulate = Color.WHITE
-            info.text = "Balcao posicionado!"
-            _save()
-        else:
-            info.text = "Posicione no piso livre da loja."
-    elif not indoors and pos_player.distance_to(pos_customer)<95:
+    elif not indoors and pos_player.distance_to(BAIRRO.porta_cafe()) < 85:
+        info.text = "Cafeteria | Fachada em teste; interior ainda indisponivel."
+    elif not indoors and not bairro.vizinhanca.loja_proxima(pos_player).is_empty():
+        info.text = bairro.vizinhanca.loja_proxima(pos_player) + " | Em breve; interior ainda indisponivel."
+    elif not indoors and pos_player.distance_to(pos_customer) < 95:
         route_wait = 1.5
         info.text = "Cliente: Ola! Procuro um computador."
     else:
-        info.text = "Aproxime-se do cliente e pressione A."
+        info.text = "Aproxime-se da porta ou do cliente e pressione A."
 
-func _change_area(enter: bool) -> void:
-    transitioning = true
+func _stop_input() -> void:
     move = Vector2.ZERO
     finger = -1
+    drag_finger = -1
+
+func _change_area(enter: bool) -> void:
+    if transitioning or enter == indoors:
+        return
+    if selecionado != null:
+        info.text = "Confirme ou cancele a edicao antes de sair."
+        return
+    transitioning = true
+    _stop_input()
+    if not enter and not _save():
+        transitioning = false
+        return
     if enter:
-        await _animate_door(true)
-    await _fade_transition()
+        await porta.animar(true)
+    await _fade_to(1.0)
     var dados: Dictionary = gestor_imoveis.entrar(LOJA_ID) if enter else gestor_imoveis.sair()
     if dados.is_empty():
+        info.text = "Erro ao localizar imovel."
+        await _fade_to(0.0)
         transitioning = false
         return
     indoors = enter
-    var cenario_interno: Texture2D = CATALOGO.interior(LOJA_ID)
-    bg_sprite.texture = cenario_interno if indoors and cenario_interno != null else BG
-    var dims := SHOP_BG.get_size()
-    var inicio: Vector2 = dados.get("entrada_interna_normalizada", Vector2(0.5,0.62))
-    pos_player = Vector2(dims.x*inicio.x,dims.y*inicio.y) if indoors else dados.get("saida_externa", Vector2(920,715))
+    bairro.visible = not enter
+    sala.visible = enter
+    exit_marker.visible = enter
+    customer.visible = not enter
+    porta.visible = false
+    pos_player = dados["entrada_interna"] if enter else dados["saida_externa"]
     player.position = pos_player
-    cam.limit_right = int(dims.x) if indoors else 1536
-    cam.limit_bottom = int(dims.y) if indoors else 1024
+    player.z_index = int(pos_player.y)
     cam.position = pos_player
-    customer.visible = not indoors
-    counter.visible = indoors and owns_counter
+    cam.reset_smoothing()
+    if enter:
+        _restore_furniture()
+        _camera_interior()
+    else:
+        for movel in moveis:
+            movel.queue_free()
+        moveis.clear()
+        _camera_exterior()
+        porta.abertura = 1.0
+        porta.visible = true
+    await _fade_to(0.0)
     if not enter:
-        await _animate_door(false)
-    info.text = "Dentro da loja | A perto da saida para sair" if indoors else "Na rua | A perto da porta para entrar"
+        await porta.animar(false)
+    info.text = "Interior | Loja compra; toque no movel para editar." if enter else "Rua | Use as faixas para atravessar. A na PC Store entra."
+    if enter and not guardados.is_empty():
+        info.text = "Moveis preservados: Loja > Recuperar, sem custo."
     transitioning = false
 
-func _animate_door(opening: bool) -> void:
-    door_sprite.visible = true
-    var order := [0,1,2,3] if opening else [3,4,5,6]
-    for frame in order:
-        door_sprite.texture = DOOR_FRAMES[frame]
-        await get_tree().create_timer(0.10).timeout
-    door_sprite.visible = false
-
-func _fade_transition() -> void:
-    var cover := ColorRect.new()
-    cover.color = Color(0,0,0,0)
-    cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    layer.add_child(cover)
+func _fade_to(alpha: float) -> void:
     var tween := create_tween()
-    tween.tween_property(cover,"color:a",1.0,0.16)
-    tween.tween_property(cover,"color:a",0.0,0.20)
+    tween.tween_property(fade,"color:a",alpha,0.18)
     await tween.finished
-    cover.queue_free()
+
+func _restore_furniture() -> void:
+    for movel in moveis:
+        movel.queue_free()
+    moveis.clear()
+    var estado := gestor_imoveis.carregar_estado(LOJA_ID)
+    if estado.is_empty():
+        estado = {"moveis":[],"guardados":[]}
+    guardados = estado.get("guardados",[]).duplicate(true)
+    for dados in estado.get("moveis",[]):
+        var coords: Array = dados["posicao"]
+        _create_furniture(dados["id"],Vector2(coords[0],coords[1]),int(dados["angulo"]))
+
+func _populate_shop() -> void:
+    for child in shop_list.get_children():
+        shop_list.remove_child(child)
+        child.queue_free()
+    for i in range(guardados.size()):
+        var id: String = guardados[i]["id"]
+        var nome: String = SPRITES.dados(id).get("nome",id)
+        _button("Recuperar: " + nome,_buy.bind(id,i),shop_list)
+    for id in SPRITES.ITENS:
+        var dados: Dictionary = SPRITES.ITENS[id]
+        if not dados.get("isometrico",false):
+            continue
+        _button("%s | R$ %d" % [dados["nome"],dados["preco"]],_buy.bind(id),shop_list)
 
 func _refresh() -> void:
-    top_label.text = "PIXEL PC TYCOON | R$ "+str(money)
-
-func _shop(action: String) -> void:
-    popup.hide()
-    move = Vector2.ZERO
-    finger = -1
-    match action:
-        "Comprar balcao":
-            if owns_counter:
-                info.text = "Voce ja possui um balcao."
-            elif money < 450:
-                info.text = "Dinheiro insuficiente."
-            else:
-                money -= 450
-                owns_counter = true
-                placing = true
-                buying = true
-                counter.visible = true
-                info.text = "Ande e pressione A para posicionar."
-        "Mover balcao":
-            if owns_counter:
-                placing = true
-                buying = false
-                committed_counter = pos_counter
-                info.text = "Ande e pressione A para mover."
-            else:
-                info.text = "Compre um balcao primeiro."
-        "Vender balcao":
-            if owns_counter and not placing:
-                money += 225
-                owns_counter = false
-                counter.visible = false
-                info.text = "Balcao vendido por R$ 225."
-            else:
-                info.text = "Nao ha balcao disponivel para venda."
-    _refresh()
-    if not placing:
-        _save()
+    top_label.text = "PIXEL PC TYCOON | R$ " + str(money)
 
 func _menu(label: String) -> void:
+    if transitioning or save_bloqueado:
+        return
     if label == "Loja":
-        if placing:
-            placing = false
-            if buying:
-                money += 450
-                owns_counter = false
-                counter.visible = false
-                buying = false
-                _refresh()
-                _save()
-                info.text = "Compra cancelada."
-            else:
-                pos_counter = committed_counter
-                counter.position = pos_counter
-                counter.modulate = Color.WHITE
-                info.text = "Movimentacao cancelada."
+        if not indoors:
+            info.text = "Entre na PC Store para comprar moveis."
+        elif selecionado != null:
+            info.text = "Confirme ou cancele a edicao atual."
         else:
-            move = Vector2.ZERO
-            finger = -1
-            popup.popup_centered(Vector2i(330,245))
+            _stop_input()
+            _populate_shop()
+            popup.popup_centered(Vector2i(370,380))
     elif label == "Cliente":
-        info.text = "Aproxime-se do cliente e pressione A."
+        info.text = "Na rua, aproxime-se do cliente e pressione A."
     else:
-        info.text = label+" - integracao pendente"
+        info.text = label + " - integracao pendente"
 
-func _save() -> void:
-    var f := FileAccess.open("user://pixel_pc_tycoon_v042.save",FileAccess.WRITE)
-    if f != null:
-        f.store_string(JSON.stringify({"cash":money,"owns_counter":owns_counter,"furniture_position":[committed_counter.x,committed_counter.y]}))
+func _save() -> bool:
+    if save_bloqueado:
+        return false
+    if indoors:
+        var itens: Array[Dictionary] = []
+        for movel in moveis:
+            if movel == selecionado and comprando:
+                continue
+            itens.append(movel.serializar())
+        gestor_imoveis.salvar_estado(LOJA_ID,{"moveis":itens,"guardados":guardados})
+    if not gestor_imoveis.gravar(money,save_path):
+        info.text = "ERRO: progresso nao salvo. " + gestor_imoveis.ultimo_erro
+        return false
+    return true
 
 func _load() -> void:
-    var path := "user://pixel_pc_tycoon_v042.save"
-    if not FileAccess.file_exists(path):
+    var dados := gestor_imoveis.ler(save_path,legacy_path)
+    if dados.is_empty():
+        save_bloqueado = true
+        info.text = "ERRO NO SAVE: arquivo preservado. " + gestor_imoveis.ultimo_erro
         return
-    var f := FileAccess.open(path,FileAccess.READ)
-    if f == null:
-        return
-    var data: Variant = JSON.parse_string(f.get_as_text())
-    if not (data is Dictionary):
-        return
-    money = maxi(0,int(data.get("cash",6500)))
-    owns_counter = bool(data.get("owns_counter",false))
-    counter.visible = indoors and owns_counter
-    var coords: Variant = data.get("furniture_position",[670,405])
-    if coords is Array and coords.size()==2:
-        pos_counter = Vector2(float(coords[0]),float(coords[1]))
-        committed_counter = pos_counter
-        counter.position = pos_counter
+    money = int(dados["dinheiro"])
+    if not gestor_imoveis.aviso.is_empty():
+        info.text = gestor_imoveis.aviso
+
+func _notification(what: int) -> void:
+    if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+        _stop_input()
+        if is_node_ready():
+            _save()

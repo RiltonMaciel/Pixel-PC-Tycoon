@@ -2,6 +2,9 @@
 
 Novo repositório dedicado ao jogo Godot Android.
 
-**Atenção:** a migração ainda não está completa. O script principal e as imagens aprovadas ainda precisam ser enviados. Não executar um APK que não contenha `Assets/Cenarios/Rua_Comercial_Aprovada.png`, `Assets/Cenarios/Loja_Base_Aprovada.png` e `scripts/RuaComercial.gd`.
+**Nota historica:** o aviso original de ausencia do script principal e dos cenarios
+foi superado: esses arquivos ja fazem parte do repositorio. O desenvolvimento
+atual e as limitacoes conhecidas estao no [README](README.md).
 
-A Action de compilação deve recusar projetos incompletos.
+A Action de compilação deve recusar projetos incompletos e executar os testes
+de fluxo antes da exportacao Android.

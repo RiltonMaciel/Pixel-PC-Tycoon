@@ -1,0 +1,17 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bnowmqj6wfsep"
+
+[deps]
+
+files=["res://Assets/Cenarios/Vizinhanca/manifesto.categoria.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.largura.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.altura.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.pivo.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.pivo.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.escala.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.orientacao.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.observacoes.translation"]
+
+source_file="res://Assets/Cenarios/Vizinhanca/manifesto.csv"
+dest_files=["res://Assets/Cenarios/Vizinhanca/manifesto.categoria.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.largura.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.altura.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.pivo.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.pivo.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.escala.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.orientacao.translation", "res://Assets/Cenarios/Vizinhanca/manifesto.observacoes.translation"]
+
+[params]
+
+compress=true
+delimiter=0

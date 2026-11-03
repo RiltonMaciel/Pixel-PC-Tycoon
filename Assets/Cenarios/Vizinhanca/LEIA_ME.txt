@@ -1,0 +1,63 @@
+PIXEL PC TYCOON — KIT DE VIZINHANÇA COMERCIAL v2
+================================================
+
+50 sprites PNG RGBA originais e separados por categoria. A entrega NÃO
+substitui as fachadas aprovadas da PC Store/cafeteria, os personagens ou a rua.
+
+CONTEÚDO
+01_predios: 5 edifícios comerciais (4 térreos e 1 de dois pavimentos)
+02_vegetacao: 8 objetos
+03_mobiliario_urbano: 12 objetos, incluindo o poste apagado
+04_detalhes_comerciais: 10 objetos
+05_veiculos: 3 modelos × 4 orientações = 12 PNGs
+06_estados: 3 PNGs — poste aceso, placa aberto, placa fechado
+07_documentacao: manifesto.csv e LEIA_ME.txt
+08_previas: painéis para INSPEÇÃO, não para importar como sprites
+
+COORDENADAS E CÂMERA
+Direções definidas para os edifícios na resolução de saída:
+- fachada principal: por unidade (64 px à direita, 20 px para baixo)
+- lateral direita: por unidade (64 px à direita, 32 px para cima)
+- verticais: linhas verticais
+Os edifícios exibem fachada principal e lateral direita, sem espelhamento.
+A arte foi rasterizada em pixels nítidos, com duplicação nearest-neighbor 2x.
+As portas principais foram desenhadas próximas da medida vertical de 132 px,
+sem incluir molduras. Referência de tamanho para adulto: ~112 px no jogo.
+Não dimensione sprites automaticamente pelo tamanho total de seus canvases.
+
+PIVÔ / POSICIONAMENTO NO JOGO
+Cada linha em manifesto.csv descreve o PNG realmente exportado.
+- pivo_x, pivo_y: pixel medido a partir do canto superior esquerdo do PNG,
+  incluindo margem transparente. Esses dados não foram calculados com base
+  em miniaturas ou na resolução original de arquivos de referência.
+- Prédios: pivô na projeção do centro da borda frontal no chão.
+- Árvores/objetos de chão: pivô ao pé ou base do objeto.
+- Objetos de parede (vaso pendurado, ar-condicionado, placas): pivô no ponto
+  de fixação, identificado na coluna observacoes.
+- Veículos: pivô aproximado no centro do plano de contato das rodas.
+- Para posicionar: desenhe o PNG em (posição_mundo_x - pivo_x,
+  posição_mundo_y - pivo_y). Ordene por profundidade do ponto de chão.
+- Confira a escala visual no motor antes da integração final; escala_sugerida
+  começa em 1.0 (não é garantia de compatibilidade com outros importadores).
+
+VEÍCULOS
+Suffixo baixo_direita: nariz apontado para baixo/direita.
+Suffixo cima_esquerda: nariz apontado para cima/esquerda.
+Suffixo baixo_esquerda: nariz apontado para baixo/esquerda.
+Suffixo cima_direita: nariz apontado para cima/direita.
+Todos têm quadros próprios; não foram girados como uma imagem plana.
+
+ESTADOS
+O poste apagado está em 03_mobiliario_urbano.
+O poste aceso está em 06_estados; o brilho só altera a luminária, sem halo.
+As placas ABERTO e FECHADO usam sinais gráficos sem palavras.
+Cada par conserva largura, altura e pivô, permitindo trocar a imagem em runtime.
+
+LIMITAÇÕES E REVISÃO ARTÍSTICA
+Esta é uma primeira versão de assets isométricos em pixel art construída por
+rasterização geométrica. Mantém direções, transparência e separação de arquivos,
+mas NÃO reproduz integralmente a densidade de detalhes/texturas das ilustrações
+originais. Recomenda-se aprovar o acabamento artístico no jogo antes da inclusão
+definitiva no repositório. Os recursos são autorais e não recortam as quatro
+imagens de referência. Nenhum código de animação, movimentação, interiores,
+trânsito ou colisão está incluído.
