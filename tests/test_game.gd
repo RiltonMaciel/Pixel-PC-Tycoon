@@ -85,6 +85,12 @@ func _run() -> void:
     game.porta.abertura = 1.0
     await _capture("02_porta")
     game.porta.visible = false
+    # A porta deve preservar o estado visual tanto na abertura quanto no fechamento.
+    await game.porta.animar(true)
+    check(game.porta.visible and is_equal_approx(game.porta.abertura,1.0),"Porta termina aberta e visivel")
+    check(game.porta.esquerda.polygon.size() == 4 and game.porta.direita.polygon.size() == 4,"Folhas da porta mantem quatro vertices")
+    await game.porta.animar(false)
+    check(not game.porta.visible and is_equal_approx(game.porta.abertura,0.0),"Porta fecha e oculta recortes sem sobreposicao")
     game.transitioning = true
     var before := game.pos_player
     game.move = Vector2.RIGHT
