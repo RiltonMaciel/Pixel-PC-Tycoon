@@ -98,10 +98,17 @@ func definir_previa(ativa: bool) -> void:
         obstaculos[i] = _poligono_loja(LOJAS[i])
     for sprite in objetos:
         var id: String = sprite.get_meta("catalogo_id")
+        if not id.begins_with("compacto_") and not id.begins_with("furgao_"):
+            continue
         var item := VISUAL.veiculo(id,ativa)
+        var original: Dictionary = CATALOGO.ITENS[id]
+        var escala_original: float = float(sprite.get_meta("escala_original"))
+        var escala_visual := escala_original
+        if ativa and item.textura != original.textura:
+            escala_visual *= float(original.altura) / maxf(1.0,float(item.textura.get_height()))
         sprite.texture = item.textura
         sprite.offset = -item.pivo
-        sprite.scale = Vector2.ONE * float(item.get("escala",sprite.get_meta("escala_original")))
+        sprite.scale = Vector2.ONE * escala_visual
 
 func _base_predio(x: float, item: Dictionary) -> float:
     var a: Vector2 = item.frente if x < item.canto.x else item.canto
