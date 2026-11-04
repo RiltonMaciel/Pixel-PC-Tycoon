@@ -33,6 +33,7 @@ var cafeteria: Node2D
 var banco: Sprite2D
 var poste: Sprite2D
 var vizinhanca: VIZINHANCA
+var previa_visual := false
 
 static func ponto(uv: Vector2) -> Vector2:
     return ORIGEM + U * uv.x + V * uv.y
@@ -106,6 +107,25 @@ func _draw() -> void:
     for u in [10,34,58]:
         _seta(Vector2(u,15),1)
         _seta(Vector2(u,19),-1)
+    if previa_visual:
+        _acabamento_calcadas()
+
+func definir_previa(ativa: bool) -> void:
+    previa_visual = ativa
+    vizinhanca.definir_previa(ativa)
+    queue_redraw()
+
+func _acabamento_calcadas() -> void:
+    for v in [RUA_INICIO-0.42,RUA_FIM+0.28]:
+        _piso(Rect2(0,v,TAMANHO.x,0.12),Color("#cba653"))
+        for u in range(TAMANHO.x):
+            _piso(Rect2(u+0.08,v+0.035,0.80,0.025),Color("#e2bd65"))
+    for v in [RUA_INICIO-0.16,RUA_FIM]:
+        for u in range(TAMANHO.x):
+            _piso(Rect2(u+0.97,v,0.025,0.16),Color("#8c8a83"))
+    for inicio in TRAVESSIAS:
+        for v in [RUA_INICIO-0.28,RUA_FIM+0.16]:
+            _piso(Rect2(inicio+0.12,v,1.76,0.12),Color("#dfba66"))
 
 func _piso(rect: Rect2, cor: Color, textura: Texture2D = null) -> void:
     var grid := PackedVector2Array([rect.position,rect.position+Vector2(rect.size.x,0),

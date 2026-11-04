@@ -1,5 +1,25 @@
 # 03 - Auditoria de sprites e recursos visuais
 
+## Entrega vigente: amostras visuais separadas e reversiveis
+
+- [PreviaVisual](../../Assets/Cenarios/PreviaVisual/): oito PNGs de veiculos
+  512x320, pivo (256,220), e mercadinho 704x576, pivo (259,463).
+- Transparencia RGBA real, margens sem corte e oito renders independentes:
+  geometria rotacionada antes da projecao, nao rotacao do raster.
+- [Gerador](../../tools/create_visual_preview.py): Pillow, depth buffer,
+  projecao dos eixos externos existentes (64,20)/(-64,32).
+- [Catalogo](../../scripts/CatalogoPreviaVisual.gd) preserva os landmarks mundiais
+  do mercado e padroniza os carros da amostra em escala 1.0, parados/em movimento.
+- Em `Financas`, previa desligada por padrao, comparacao reversivel, sem gravar
+  save nem mudar colisoes. Demais fachadas/furgao nao sao substituidos.
+- **Prototipos procedurais, nao acabamento final equivalente a referencia**.
+  A aprovacao estetica nao e automatizada nem presumida.
+
+Os 142 PNGs originais permanecem identicos por SHA-256. Novas verificacoes:
+85 headless/87 renderizadas na [suite visual](../../tests/test_visual_preview.gd);
+suite de imagens ampliada para 12 testes. Demais oito suites: 3.090 verificacoes.
+33 vistas dos moveis e arte final restante continuam pendentes.
+
 ## Atualização vigente: recursos preservados e apresentação funcional
 
 Os **142 PNGs originais mantêm SHA-256 idêntico** ao inventário da auditoria.

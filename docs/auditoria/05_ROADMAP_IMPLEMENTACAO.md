@@ -1,5 +1,35 @@
 # 05 - Roadmap incremental de implementação
 
+## Ordem vigente solicitada: visual antes das outras expansoes
+
+1. **Visual do bairro:** previa reversivel entregue com dois carros/quatro
+   vistas cada, um mercado e acabamento do passeio. Aprovar/refinar o resultado
+   antes de substituir originais e ampliar outras fachadas. Commit/PR separado,
+   sem merge automatico. Amostras procedurais nao equivalem a arte final.
+2. **IA e circulacao:** espacamento entre atores, filas, funcionarios e
+   veiculos; validar ausencia de sobreposicao/bloqueio sem reduzir o jogo a
+   atores imoveis ou alterar silenciosamente a demanda.
+3. **Construcao e arte:** paredes/acabamentos, 33 vistas, portas e gabinete
+   definitivos, com aprovacao visual e preservacao dos recursos existentes.
+4. **Campanhas variadas:** estrategias de demanda, salarios, divida e expansao,
+   complementando a referencia de 56 dias.
+5. **Preparacao de release:** assinatura e instalacao/atualizacao preservando
+   saves, checklist; depende de keystore/aparelhos e autorizacao para APK.
+6. **Eventos e decisoes:** falta de pecas, contratos, atrasos e consequencias.
+7. **Assistencia ampliada:** defeitos combinados, resultados inconclusivos e
+   diagnosticos alternativos.
+8. **Personalizacao completa:** corpo, cabelo, roupas e uniformes com arte propria.
+9. **Gestao:** relatorios por produto/servico, giro, margem e previsao de contas.
+10. **Varias lojas simultaneas:** estoque transferivel/equipes por unidade,
+    diferente do sistema atual de uma unidade ativa.
+11. **Acessibilidade/opcoes:** texto, volume, vibracao, contraste e controles.
+12. **Audio:** musica/ambiencia/passos/ferramentas e feedback.
+13. **Progressao adicional:** objetivos, contratos maiores e mais geracoes.
+
+Os itens 2-13 nao sao declarados concluidos por esta entrega visual.
+Integracao da previa testada em nove suites (3.175 verificacoes headless),
+87 verificacoes renderizadas e 12 testes de imagens. Android continua pendente.
+
 ## Próximas entregas após evolução da campanha/mundo
 
 Já integrados: metas opcionais, calendário datado, investigação por ensaios,

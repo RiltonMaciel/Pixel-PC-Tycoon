@@ -3,6 +3,28 @@
 Prototipo Android em Godot **4.4.1 Standard**, GDScript e pixel art.
 Resolucao de referencia: 432 x 768, retrato. Nao usa .NET nem HTML.
 
+## Previa visual do bairro (pendente de aprovacao)
+
+Em `Financas > Previa visual do bairro: ativar`, compare o visual original com:
+
+- Carro azul e picape vermelha, oito PNGs transparentes de quatro vistas
+  independentes do modelo, sem girar uma imagem para simular outra vista.
+- Mercadinho com prateleiras, letreiro, toldo, esquadrias e cobertura detalhados.
+- Escala comum entre os novos carros estacionados e em movimento; piso tatil
+  e juntas do meio-fio, mantendo as colisoes e entradas existentes.
+
+Sao **amostras procedurais de pixel art, nao a arte final no nivel de detalhe
+da imagem de referencia**. So um comercio e dois modelos participam da amostra;
+as demais fachadas e o furgao continuam originais. A previa inicia desligada,
+pode ser revertida no mesmo botao e nao reescreve saves. Os 142 PNGs aprovados
+foram preservados. Recursos novos em [PreviaVisual](Assets/Cenarios/PreviaVisual/);
+geracao reproduzivel: `python tools/create_visual_preview.py` (Pillow).
+
+Validacao desta entrega: nove suites, **3175 verificacoes headless**; teste
+da previa renderizada com **87 verificacoes** e duas capturas; **12 testes
+de imagens**, sem falhas. Nao foi gerado APK. A aprovacao estetica continua
+humana; testes de pixels/projecao nao comprovam qualidade artistica.
+
 ## Abrir e jogar
 
 1. Importe `project.godot` no Godot 4.4.1.

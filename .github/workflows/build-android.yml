@@ -121,7 +121,7 @@ jobs:
       - name: Testar objetivos, mundo vivo e evolucao
         run: |
           set -euo pipefail
-          for suite in objectives world evolution; do
+          for suite in objectives world evolution visual_preview; do
             timeout 200 "$HOME/godot-bin/godot" --headless --path . --script "tests/test_$suite.gd" > "/tmp/test_$suite.log" 2>&1 || { cat "/tmp/test_$suite.log"; exit 1; }
             cat "/tmp/test_$suite.log"
             grep -Eq '^RESULT: [0-9]+ passed, 0 failed$' "/tmp/test_$suite.log"

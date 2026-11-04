@@ -1,0 +1,112 @@
+{
+  "status": "amostra_pendente_aprovacao",
+  "projecao": {
+    "u": [
+      64,
+      20
+    ],
+    "v": [
+      -64,
+      32
+    ]
+  },
+  "carros": {
+    "carro_azul": {
+      "baixo_direita": {
+        "arquivo": "carro_azul_baixo_direita.png",
+        "pivo": [
+          256,
+          220
+        ],
+        "escala": 1.0,
+        "angulo_modelo": 0
+      },
+      "baixo_esquerda": {
+        "arquivo": "carro_azul_baixo_esquerda.png",
+        "pivo": [
+          256,
+          220
+        ],
+        "escala": 1.0,
+        "angulo_modelo": 90
+      },
+      "cima_esquerda": {
+        "arquivo": "carro_azul_cima_esquerda.png",
+        "pivo": [
+          256,
+          220
+        ],
+        "escala": 1.0,
+        "angulo_modelo": 180
+      },
+      "cima_direita": {
+        "arquivo": "carro_azul_cima_direita.png",
+        "pivo": [
+          256,
+          220
+        ],
+        "escala": 1.0,
+        "angulo_modelo": 270
+      }
+    },
+    "picape_vermelha": {
+      "baixo_direita": {
+        "arquivo": "picape_vermelha_baixo_direita.png",
+        "pivo": [
+          256,
+          220
+        ],
+        "escala": 1.0,
+        "angulo_modelo": 0
+      },
+      "baixo_esquerda": {
+        "arquivo": "picape_vermelha_baixo_esquerda.png",
+        "pivo": [
+          256,
+          220
+        ],
+        "escala": 1.0,
+        "angulo_modelo": 90
+      },
+      "cima_esquerda": {
+        "arquivo": "picape_vermelha_cima_esquerda.png",
+        "pivo": [
+          256,
+          220
+        ],
+        "escala": 1.0,
+        "angulo_modelo": 180
+      },
+      "cima_direita": {
+        "arquivo": "picape_vermelha_cima_direita.png",
+        "pivo": [
+          256,
+          220
+        ],
+        "escala": 1.0,
+        "angulo_modelo": 270
+      }
+    }
+  },
+  "lojas": {
+    "mercadinho": {
+      "arquivo": "mercadinho.png",
+      "pivo": [
+        259,
+        463
+      ],
+      "frente": [
+        62,
+        404.4375
+      ],
+      "canto": [
+        456,
+        527.5625
+      ],
+      "fundo": [
+        624,
+        443.5625
+      ]
+    }
+  }
+}

@@ -17,6 +17,7 @@ signal pedestre_chegou_loja(pedestre_id: int, loja_id: String, posicao: Vector2)
 const BAIRRO = preload("res://scripts/BairroComercial.gd")
 const IMOVEIS = preload("res://scripts/Imoveis/CatalogoImoveis.gd")
 const CATALOGO = preload("res://scripts/CatalogoVizinhanca.gd")
+const VISUAL = preload("res://scripts/CatalogoPreviaVisual.gd")
 const PERSONAGEM = preload("res://scripts/PersonagemAnimado.gd")
 const CALENDARIO = preload("res://scripts/CalendarioEconomia.gd")
 const MAX_PEDESTRES := 32
@@ -47,6 +48,19 @@ var _configurado := false
 var _sequencia := 0
 var _turno_pedestre := 0
 var _turno_trafego := 0
+var previa_visual := false
+
+func definir_previa(ativa: bool) -> void:
+    previa_visual = ativa
+    for ator in _atores:
+        if ator.trafego:
+            _visual_veiculo(ator)
+
+func _visual_veiculo(ator: Dictionary) -> void:
+    var item := VISUAL.veiculo(ator.veiculo_id,previa_visual)
+    ator.no.texture = item.textura
+    ator.no.offset = -item.pivo
+    ator.no.scale = Vector2.ONE * float(item.get("escala",0.65))
 
 func configurar(bairro_ou_dados: Variant) -> bool:
     _limpar()
@@ -372,8 +386,8 @@ func _ativar(trafego: bool) -> bool:
         _turno_trafego += 1
         var movimento: Vector2 = ator.rota.pontos[1] - ator.rota.pontos[0]
         var id := "compacto_azul_baixo_direita" if (_inversa.basis_xform(movimento)).x > 0 else "compacto_branco_cima_esquerda"
-        ator.no.texture = CATALOGO.ITENS[id].textura
-        ator.no.offset = -CATALOGO.ITENS[id].pivo
+        ator.veiculo_id = id
+        _visual_veiculo(ator)
     else:
         _turno_pedestre += 1
     _sequencia += 1

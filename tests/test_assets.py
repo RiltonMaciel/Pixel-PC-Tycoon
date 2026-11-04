@@ -12,6 +12,49 @@ KIT = ROOT / "Assets" / "Cenarios" / "Modular"
 
 
 class AssetsTest(unittest.TestCase):
+    def test_preview_vehicle_views(self):
+        folder = ROOT / "Assets" / "Cenarios" / "PreviaVisual"
+        manifest = json.loads((folder / "manifesto.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["status"], "amostra_pendente_aprovacao")
+        for model in ("carro_azul", "picape_vermelha"):
+            views = manifest["carros"][model]
+            self.assertEqual(set(views), {"baixo_direita", "baixo_esquerda",
+                                         "cima_direita", "cima_esquerda"})
+            self.assertEqual({v["angulo_modelo"] for v in views.values()}, {0, 90, 180, 270})
+            images = []
+            for entry in views.values():
+                with Image.open(folder / entry["arquivo"]) as image:
+                    self.assertEqual(image.mode, "RGBA")
+                    self.assertEqual(image.size, (512, 320))
+                    self.assertEqual(image.getchannel("A").getextrema(), (0, 255))
+                    box = image.getbbox()
+                    self.assertGreater(min(box[:2]), 0)
+                    self.assertLess(box[2], image.width)
+                    self.assertLess(box[3], image.height)
+                    self.assertEqual(entry["pivo"], [256, 220])
+                    self.assertEqual(entry["escala"], 1.0)
+                    images.append(image.copy())
+            self.assertEqual(len({hashlib.sha256(i.tobytes()).hexdigest() for i in images}), 4)
+            for a in images:
+                for b in images:
+                    for angle in (90, 180, 270):
+                        self.assertNotEqual(a.rotate(angle).tobytes(), b.tobytes())
+
+    def test_preview_store_matches_exterior_axes(self):
+        folder = ROOT / "Assets" / "Cenarios" / "PreviaVisual"
+        entry = json.loads((folder / "manifesto.json").read_text())["lojas"]["mercadinho"]
+        left, right, back = (entry[key] for key in ("frente", "canto", "fundo"))
+        self.assertAlmostEqual((right[1]-left[1])/(right[0]-left[0]), 20/64)
+        self.assertAlmostEqual((back[1]-right[1])/(back[0]-right[0]), -32/64)
+        with Image.open(folder / entry["arquivo"]) as image:
+            self.assertEqual(image.mode, "RGBA")
+            self.assertEqual(image.size, (704, 576))
+            self.assertEqual(image.getchannel("A").getextrema(), (0, 255))
+            box = image.getbbox()
+            self.assertGreater(min(box[:2]), 0)
+            self.assertLess(box[2], image.width)
+            self.assertLess(box[3], image.height)
+
     def test_vizinhanca_manifest_and_states(self):
         folder = ROOT / "Assets" / "Cenarios" / "Vizinhanca"
         with (folder / "manifesto.csv").open(encoding="utf-8-sig", newline="") as manifest:

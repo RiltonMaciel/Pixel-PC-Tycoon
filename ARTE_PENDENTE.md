@@ -1,5 +1,26 @@
 # Arte pendente - prompts para a outra IA
 
+## Prioridade vigente: carros, fachadas e proporcoes
+
+Foi autorizada a criacao de novos sprites respeitando o traco do jogo.
+A primeira entrega e uma **previa reversivel, pendente de aprovacao visual**:
+carro azul e picape vermelha em quatro vistas cada, mercadinho e acabamento
+do passeio. Acesso em `Financas > Previa visual do bairro`.
+
+[Recursos](Assets/Cenarios/PreviaVisual/) separados dos originais; oito vistas
+renderizadas a partir de geometria, nao rotacoes de PNG. Pivos/landmarks mantem
+o footprint existente; veiculos novos parados/em movimento usam escala comum.
+O exterior continua nos eixos (64,20)/(-64,32), nao no grid interno 2:1.
+
+O [gerador](tools/create_visual_preview.py) produz amostras procedurais, sem
+modelo generativo externo. **Nao equivale ao acabamento da referencia enviada**.
+Ainda sao necessarios refinamento artistico/aprovacao para substituir o padrao
+e ampliar farmacia, roupas, restaurante, predio comercial e furgao.
+Preservados os 142 PNGs aprovados. As 33 vistas de moveis, portas definitivas,
+gabinete final e corpo/roupa/cabelo modulares continuam pendentes.
+As secoes anteriores abaixo sao historicas; trafego/dia-noite ja foram
+integrados posteriormente e nao sao ausencia atual.
+
 ## Direcao atual: interior modular
 
 O exterior foi reorganizado como rua reta com duas pistas, calcadas largas e
