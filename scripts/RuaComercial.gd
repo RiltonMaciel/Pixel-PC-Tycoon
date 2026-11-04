@@ -142,6 +142,8 @@ func _ready() -> void:
     _load()
     mundo_vivo = MUNDO_VIVO.new()
     add_child(mundo_vivo)
+    # Sincroniza a simulacao urbana com a aparencia inicial do bairro.
+    mundo_vivo.definir_previa(bairro.previa_visual)
     if not mundo_vivo.configurar(bairro):
         info.text = "ERRO: nao foi possivel configurar a circulacao do bairro."
     mundo_vivo.pedestre_chegou_loja.connect(_cliente_da_rua)
