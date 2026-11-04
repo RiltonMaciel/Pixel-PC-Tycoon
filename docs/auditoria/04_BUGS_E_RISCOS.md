@@ -1,5 +1,21 @@
 # 04 - Bugs, divergências e riscos
 
+## Estado vigente: regressão CI corrigida e riscos delimitados
+
+| Item | Severidade | Evidência/estado | Estratégia |
+|---|---|---|---|
+| Actions #67 falhou antes da exportação | Alta | Cartão do gabinete fora do scroll no [teste](../../tests/test_progression.gd), não SDK/Java. Corrigido: rolar linha, aguardar layout e verificar centros antes do arraste nativo. 258 verificações headless/263 renderizadas | CI de PR testa sem APK |
+| Requisito futuro impossível | Alta | Novo Universo em Malha II exigia CPU 200, teto disponível 180. [Catálogo](../../scripts/CatalogoJogos.gd) ajustado para CPU 180/GPU 300, configuração viável comprovada | Testar plano, montagem e requisitos de todos os 22 jogos |
+| Nome de reparo investigativo incorreto | Média | RAM/SSD/cooler mostravam texto de troca de fonte. [Serviços](../../scripts/CatalogoServicos.gd) centraliza nome pelo caso, reutilizado nos painéis/fila | Regressão dos três nomes e captura do reparo |
+| Novos dados opcionais corrompidos | Alta | [Gerenciador](../../scripts/Imoveis/GerenciadorImoveis.gd) valida evolução/pisos/níveis antes da gravação e leitura; recuperação continua ativa | Rejeitar sem remover dados; manter backups |
+| Crowd/veículos | Média | População limitada a 32/8 e rotas válidas; sem avoidance dinâmico completo | Playtest de densidade e colisões antes de aumentar limites |
+| Campanha determinística | Média | 56 dias, 112 PCs, especialistas/dívida/patrimônio testados; não mede toda estratégia ou procura orgânica | Testes de campanhas alternativas e humanos |
+| Android/release | Alta | Safe area/pausa testados no desktop; sem FPS/bateria/notch/assinatura em aparelho | Homologar em aparelhos com autorização; não declarar pronto |
+| Arte incompleta | Média | 33 vistas e arte final de hardware/portas/personagens ainda ausentes | Aprovação específica; manter sprites aprovados |
+
+Oito suítes: **3.090 verificações headless e 1.419 renderizadas**, sem falhas;
+10 testes de imagens e 142 PNGs preservados. Os registros seguintes são históricos.
+
 ## Estado mais recente: campanha e oficina validadas no desktop
 
 - Corrigida incompatibilidade `int`/`float` na validação do nível após JSON;

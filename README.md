@@ -35,7 +35,7 @@ As imagens legadas e os sprites aprovados foram preservados.
   Fechar corredores ou prender o cliente impede confirmar, sem cobrar.
   Remover um obstaculo continua permitido; layouts antigos nao sao rearranjados.
 - Aproxime-se da mesa com notebook e pressione A, ou abra `Estoque`.
-  Tres fornecedores oferecem 26 componentes/consumiveis ficticios, com desbloqueios por nivel.
+  Tres fornecedores oferecem 30 componentes/consumiveis ficticios, com desbloqueios por nivel e data.
   Cada clique encomenda uma unidade
   e debita o custo; a peca ainda nao entra no estoque.
 - A entrega leva **30, 25 ou 20 segundos de simulacao ativa**, conforme fornecedor. Em `Estoque`, use
@@ -66,7 +66,8 @@ As imagens legadas e os sprites aprovados foram preservados.
   Os precos e prazos deste primeiro ciclo sao parametros provisorios de balanceamento.
 
 A bancada usa **cartoes esquematicos**, nao novos sprites finais de hardware.
-Nao inclui ainda montagem grafica dentro do gabinete. As fatias adicionais abaixo nao equivalem ao
+O painel `Gabinete visual` permite arrastar pecas para oito encaixes no diagrama;
+nao e a arte final do interior do gabinete. As fatias adicionais abaixo nao equivalem ao
 escopo final completo do documento mestre.
 
 ## Calendario, clientes, servicos e equipe
@@ -89,7 +90,7 @@ escopo final completo do documento mestre.
   prioridade urgente/normal/baixa orienta o tecnico, com desempate por chegada.
   Cancelar antes do consumo devolve a reserva uma unica vez.
   Ha uma bancada/atendimento ativo por vez; nao e uma fila de montagens completas.
-- `Cliente` oferece **20 jogos ficticios**, todos com configuracao compativel
+- `Cliente` oferece **22 jogos ficticios**, todos com configuracao compativel
   e financeiramente possivel verificada. Na bancada, o teste mede requisitos,
   temperatura e reserva da fonte. Trocar cooler/fonte corrige falhas reais de
   gameplay; alterar pecas invalida cabos e diagnostico anteriores.
@@ -162,9 +163,57 @@ escopo final completo do documento mestre.
   `Financas > Recentralizar camera` restaura enquadramento e seguimento externo.
   Zoom vai de 0,75 a 4 vezes o enquadramento-base.
 
+## Evolucao da campanha e mundo vivo
+
+- `Financas > Guia, objetivos, aparencia e acabamentos`: guia opcional de seis
+  passos e seis conquistas persistentes, sem bloquear o jogo livre nem criar dinheiro.
+- Novas pecas nos dias 8/14/21/28 e dois jogos nos dias 14/28. Data, nivel e
+  fornecedor sao exigidos; aquisicoes antigas continuam acessiveis.
+- Assistencia inclui memoria, superaquecimento e SSD degradado. Ensaios de
+  memoria/carga/disco produzem evidencias simuladas; diagnostico exige o ensaio
+  correspondente, e cada reparo usa sua propria peca e teste final.
+- No guia, dentro da loja, edite piso por coordenadas U/V e setores
+  Vendas/Oficina/Estoque. Reutiliza tres pisos aprovados: trocar variante custa
+  R$ 20 por modulo; setor e gratuito. Sem alterar colisoes. Persiste por imovel.
+- Nove aparencias opcionais de acessorios nativos, salvas por partida.
+  Clientes e funcionarios tem variacoes estaveis. Corpo/roupa/cabelo modulares
+  finais continuam pendentes; os sprites aprovados nao foram substituidos.
+- Pedestres percorrem calcadas/travessias; visitas a loja alimentam o atendimento
+  real quando ha capacidade/estoque. Veiculos circulam nas pistas; clima/eventos
+  influenciam o movimento. Limites: 32 pedestres e oito veiculos. Funcionarios
+  percorrem rotas ate seus postos. Nao ha avoidance dinamico completo.
+- Pausar o aplicativo interrompe simulacao e salva. Reabrir nao avanca tempo
+  offline. HUD/controles consideram safe area; notch real e paineis em aparelhos
+  variados ainda precisam de homologacao. O guia mostra FPS/memoria local.
+- Ensaio automatizado de 56 dias: 112 PCs com compras/recebimentos reais,
+  despesas, especialistas, compra do segundo imovel e duas ampliacoes com lucro
+  acumulado. Cenario sem vendas acumula R$ 6720 de divida. Nao garante demanda
+  ou lucro em todas as estrategias.
+
+Validacao desktop: **3090 verificacoes headless, 1419 renderizadas e 10 testes
+de imagens**, sem falhas; 13 capturas. Repeticoes entre modos nao sao requisitos
+unicos. Os 142 PNGs originais mantem os hashes. Android, bateria e release
+assinado ainda nao foram testados; nao foi gerado APK nesta etapa.
+
+### Integracao continua e release
+
+A falha do Actions #67 foi no teste de drag-and-drop: o cartao estava fora da
+area visivel do scroll. O teste agora rola a linha e confirma que os centros
+estao visiveis antes do arraste real; nao ignora instalacao/compatibilidade.
+
+PRs executam [.github/workflows/validate-game.yml](.github/workflows/validate-game.yml),
+com importacao, imagens e oito suites, **sem gerar APK**. A exportacao automatica
+de [.github/workflows/build-android.yml](.github/workflows/build-android.yml) ocorre
+somente em pushes para `main`; feature branches nao geram APK automaticamente.
+Disparo manual permite `debug` ou `release`. Release exige os secrets
+`ANDROID_RELEASE_KEYSTORE_B64`, `ANDROID_RELEASE_ALIAS` e
+`ANDROID_RELEASE_PASSWORD`; senha da chave e do keystore devem ser iguais para
+o exportador Godot. Nenhum segredo deve ser commitado. A configuracao nao
+equivale a assinatura, instalacao ou publicacao homologadas.
+
 No bairro, caminhe nas calcadas e atravesse pelas faixas brancas. O asfalto fora
 das travessias, o predio, banco, poste, vasos e lixeira bloqueiam os pes do personagem.
-Ha tres veiculos decorativos parados, sem transito. As outras lojas nao funcionam
+Ha tres veiculos decorativos parados, alem do transito animado. As outras lojas nao funcionam
 internamente, exceto o imovel compravel das Salas comerciais.
 
 ## O que foi integrado
@@ -174,7 +223,7 @@ internamente, exceto o imovel compravel das Salas comerciais.
   celulas conectadas sao alcancaveis desde a loja. As calcadas continuam ate
   as extremidades, com espaco reservado para futuros estabelecimentos.
   O asfalto e uma superficie continua; as marcacoes sao desenhadas separadamente,
-  sem contornos de tiles. Ainda nao ha simulacao de transito.
+  sem contornos de tiles. O mundo vivo acrescenta circulacao limitada nas pistas.
 - Cafeteria decorativa ao lado da PC Store, com colisao e aviso ao interagir:
   nao possui interior, atendimento ou compra. A altura da porta foi ajustada
   para diferir menos de 3 pixels da porta da PC Store (aproximadamente 132 pixels).

@@ -392,8 +392,10 @@ static func validar(dados: Dictionary) -> bool:
         ids[ordem["id"]] = true
     return true
 
-func abrir_os(tipo: String) -> bool:
+func abrir_os(tipo: String, caso: String = "") -> bool:
     ultimo_erro = ""
+    if not caso.is_empty() and (tipo != "reparo" or not SERVICOS.CASOS.has(caso)):
+        return _erro("Cenario de reparo desconhecido.")
     if total_os() >= MAX_OS:
         return _erro("Oficina lotada: limite de quatro OS/PCs em andamento.")
     if not SERVICOS.ITENS.has(tipo) or not estado["cliente"].is_empty():
@@ -402,6 +404,30 @@ func abrir_os(tipo: String) -> bool:
     estado["cliente"] = {"id":id,"produto":tipo,"tipo":"servico","fase":"entrando"}
     estado["servico"] = {"id":id,"tipo":tipo,"fase":"recepcao","preco":SERVICOS.ITENS[tipo]["preco"],"pecas":SERVICOS.pc_inicial(tipo),
         "poeira":80 if tipo in ["limpeza","manutencao"] else 20,"relatorio":"","custo":0,"consumidos":{},"devolvidos":{},"teste":false,"pasta_trocada":false}
+    if not caso.is_empty():
+        var ordem: Dictionary = estado["servico"]
+        ordem["caso"] = caso
+        ordem["ensaios"] = []
+        ordem["corrigido"] = false
+        ordem["preco"] = SERVICOS.CASOS[caso]["preco"]
+        ordem["pecas"]["fonte"] = "fonte_clara"
+    return true
+
+func investigar_os(ensaio: String) -> bool:
+    ultimo_erro = ""
+    var ordem: Dictionary = estado["servico"]
+    if ordem.is_empty() or not ordem.has("caso") or ordem["fase"] != "recepcao" or not ensaio in SERVICOS.ENSAIOS:
+        return _erro("Selecione uma OS investigativa e um ensaio valido na recepcao.")
+    if not ensaio in ordem["ensaios"]:
+        ordem["ensaios"].append(ensaio)
+    var medidas := SERVICOS.medir_caso(ordem["caso"],false)
+    var resultados: PackedStringArray = []
+    for realizado in ordem["ensaios"]:
+        match realizado:
+            "memoria": resultados.append("Memoria: %d erros" % medidas["erros_memoria"])
+            "carga": resultados.append("CPU: %d C" % medidas["cpu_c"])
+            "disco": resultados.append("Saude SSD: %d%%" % medidas["saude_ssd"])
+    ordem["relatorio"] = "Medicoes simuladas: " + "; ".join(resultados)
     return true
 
 func diagnosticar_os() -> bool:
@@ -410,6 +436,11 @@ func diagnosticar_os() -> bool:
     if os_dados.is_empty() or os_dados["fase"] != "recepcao":
         return _erro("Receba uma OS antes do diagnostico.")
     var tipo: String = os_dados["tipo"]
+    if os_dados.has("caso"):
+        if not SERVICOS.CASOS[os_dados["caso"]]["ensaio"] in os_dados["ensaios"]:
+            return _erro("Execute o ensaio indicado para comprovar o defeito antes do orcamento.")
+        os_dados["fase"] = "orcamento"
+        return true
     os_dados["relatorio"] = "Fonte com margem insuficiente para estabilidade." if tipo in ["reparo","diagnostico"] else "RAM atual 8 GB; solicitado upgrade para 16 GB." if tipo == "upgrade" else "Acumulo de poeira: %d%%." % int(os_dados["poeira"])
     os_dados["fase"] = "orcamento"
     return true
@@ -427,7 +458,7 @@ func executar_os() -> bool:
     if os_dados.is_empty() or os_dados["fase"] != "execucao":
         return _erro("Aprove o orcamento antes de executar.")
     var tipo: String = os_dados["tipo"]
-    var necessarios: Dictionary = SERVICOS.ITENS[tipo]["necessarios"]
+    var necessarios: Dictionary = SERVICOS.necessarios(os_dados)
     for id in necessarios:
         if int(os_dados.get("reservas",{}).get(id,0)) + quantidade(id) < int(necessarios[id]):
             return _erro("Falta para executar a OS: " + str(CATALOGO.PECAS[id]["nome"]))
@@ -439,7 +470,13 @@ func executar_os() -> bool:
             estado["estoque"][id] = quantidade(id) - quantidade_usada
         os_dados["consumidos"][id] = quantidade_usada
         os_dados["custo"] = int(os_dados["custo"]) + int(CATALOGO.PECAS[id]["custo"]) * quantidade_usada
-    if tipo in ["upgrade","reparo"]:
+    if os_dados.has("caso"):
+        var caso: Dictionary = SERVICOS.CASOS[os_dados["caso"]]
+        var categoria: String = caso["categoria"]
+        os_dados["devolvidos"][categoria] = os_dados["pecas"][categoria]
+        os_dados["pecas"][categoria] = caso["peca"]
+        os_dados["corrigido"] = true
+    elif tipo in ["upgrade","reparo"]:
         var categoria := "ram" if tipo == "upgrade" else "fonte"
         os_dados["devolvidos"][categoria] = os_dados["pecas"][categoria]
         os_dados["pecas"][categoria] = "ram_brisa16" if tipo == "upgrade" else "fonte_clara"
@@ -464,6 +501,10 @@ func testar_os() -> bool:
         "limpeza","manutencao": ok = int(os_dados["poeira"]) == 0
     if tipo == "manutencao":
         ok = ok and os_dados["pasta_trocada"]
+    if os_dados.has("caso"):
+        var medidas := SERVICOS.medir_caso(os_dados["caso"],os_dados["corrigido"])
+        ok = os_dados["corrigido"] and medidas["erros_memoria"] == 0 and medidas["cpu_c"] <= 80 and medidas["saude_ssd"] >= 80
+        os_dados["relatorio"] += "\nApos reparo: memoria %d erros; CPU %d C; SSD %d%%. Peca antiga devolvida ao cliente." % [medidas["erros_memoria"],medidas["cpu_c"],medidas["saude_ssd"]]
     if not ok:
         return _erro("Teste final reprovou o resultado do servico.")
     os_dados["teste"] = true
@@ -490,7 +531,7 @@ func estacionar_os() -> bool:
     var ordem: Dictionary = estado["servico"]
     if ordem.is_empty() or ordem["fase"] != "execucao" or estado["cliente"].get("fase") != "aguardando":
         return _erro("Aprove a OS com o cliente antes de guardar o PC na oficina.")
-    var necessarios: Dictionary = SERVICOS.ITENS[ordem["tipo"]]["necessarios"]
+    var necessarios: Dictionary = SERVICOS.necessarios(ordem)
     if not ordem.has("reservas"):
         for id in necessarios:
             if quantidade(id) < int(necessarios[id]):
@@ -540,6 +581,18 @@ static func _validar_os(os_dados: Dictionary) -> bool:
         return true
     if not _inteiro(os_dados.get("id"),1) or not SERVICOS.ITENS.has(os_dados.get("tipo","")) or not os_dados.get("fase") in ["recepcao","orcamento","execucao","teste","pronto","entregue","cancelado"]:
         return false
+    if os_dados.has("caso"):
+        if os_dados["tipo"] != "reparo" or not SERVICOS.CASOS.has(os_dados["caso"]) or not os_dados.get("ensaios") is Array or not os_dados.get("corrigido") is bool:
+            return false
+        var vistos: Array = []
+        for ensaio in os_dados["ensaios"]:
+            if not ensaio in SERVICOS.ENSAIOS or ensaio in vistos:
+                return false
+            vistos.append(ensaio)
+        if os_dados["fase"] in ["orcamento","execucao","teste","pronto","entregue"] and not SERVICOS.CASOS[os_dados["caso"]]["ensaio"] in vistos:
+            return false
+        if os_dados["fase"] in ["teste","pronto","entregue"] and not os_dados["corrigido"]:
+            return false
     if not _inteiro(os_dados.get("preco"),1) or not _inteiro(os_dados.get("custo")) or not _inteiro(os_dados.get("poeira")) or float(os_dados["poeira"]) > 100 or not os_dados.get("relatorio") is String or not os_dados.get("teste") is bool or not os_dados.get("pasta_trocada") is bool:
         return false
     if not os_dados.get("pecas") is Dictionary or os_dados["pecas"].size() != 8 or not CATALOGO.incompatibilidade(os_dados["pecas"]).is_empty():
@@ -548,7 +601,7 @@ static func _validar_os(os_dados: Dictionary) -> bool:
         return false
     var reservas: Dictionary = os_dados.get("reservas",{})
     if os_dados.has("reservas") and os_dados["fase"] == "execucao":
-        var necessarios: Dictionary = SERVICOS.ITENS[os_dados["tipo"]]["necessarios"]
+        var necessarios: Dictionary = SERVICOS.necessarios(os_dados)
         if reservas.size() != necessarios.size():
             return false
         for id in reservas:

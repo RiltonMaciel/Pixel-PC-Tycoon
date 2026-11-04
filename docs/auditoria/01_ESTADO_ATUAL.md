@@ -1,5 +1,27 @@
 # 01 - Estado atual e inventário técnico
 
+## Estado vigente: evolução da campanha e mundo vivo
+
+Base desta entrega: `93294bf` (PR #12 integrado). Os registros abaixo desta
+seção preservam a evolução histórica; não descrevem todos o estado vigente.
+
+| Sistema integrado | Evidência | Escopo validado no desktop |
+|---|---|---|
+| Objetivos e guia | [Objetivos](../../scripts/Objetivos.gd), [InterfaceJogo](../../scripts/InterfaceJogo.gd), [RuaComercial](../../scripts/RuaComercial.gd) | Seis metas opcionais, seis orientações, persistência por slot |
+| Calendário tecnológico | [Campanha](../../scripts/Campanha.gd), [Catálogo](../../scripts/CatalogoJogos.gd) | Quatro componentes datados, dois novos jogos viáveis; 22 jogos, 30 componentes/insumos |
+| Investigação | [Serviços](../../scripts/CatalogoServicos.gd), [Comércio](../../scripts/Comercio.gd) | Três defeitos, ensaios, evidências, reparo específico, reserva e pagamento único |
+| Acabamentos | [Reforma](../../scripts/Reforma.gd), [Interior](../../scripts/Imoveis/InteriorModular.gd) | Três pisos existentes por célula, setores, cobrança/rollback e estado por imóvel |
+| Aparência e gabinete | [Aparência](../../scripts/Aparencia.gd), [Gabinete](../../scripts/GabineteVisual.gd) | Acessórios nativos opcionais e oito encaixes reais no diagrama; não arte final |
+| Mundo | [MundoVivo](../../scripts/MundoVivo.gd), [Controlador](../../scripts/RuaComercial.gd) | Pedestres, tráfego limitado, visitas comerciais e funcionários seguindo rotas |
+| Ciclo de vida | [Evolução](../../scripts/Evolucao.gd), [Gerenciador](../../scripts/Imoveis/GerenciadorImoveis.gd) | Migração opcional, slots, pausa/salvamento/retomada; cálculo de safe area |
+
+Validação: **3.090 verificações headless, 1.419 renderizadas, 10 testes de
+imagens**, 13 capturas; sem falhas. Oito suítes incluem
+[evolution](../../tests/test_evolution.gd), com 56 dias/112 PCs, salários,
+especialistas, dívida e investimentos reais no segundo imóvel/ampliações.
+Os 142 PNGs originais mantêm os hashes. Contagens repetem cenários entre modos.
+Sem APK local nem homologação Android. A arte final pendente continua explícita.
+
 ## Atualização mais recente: campanha, progressão e oficina
 
 Os seis blocos seguintes foram integrados à cena existente, sem refazer o jogo:

@@ -5,6 +5,15 @@ var direcao := "frente"
 var personagem := ""
 var tempo := 0.0
 var quadros: Dictionary = {}
+var acessorios: Node2D
+var estilo := 0
+
+func personalizar(valor: int) -> void:
+    estilo = valor
+    if acessorios == null:
+        acessorios = preload("res://scripts/Aparencia.gd").new()
+        add_child(acessorios)
+    acessorios.configurar(estilo,direcao)
 
 func configurar(id: String) -> void:
     personagem = id
@@ -35,3 +44,5 @@ func atualizar(movimento: Vector2, delta: float) -> void:
     var frames: Array = quadros[direcao]
     texture = frames[int(tempo * 8.0) % frames.size()]
     z_index = int(position.y)
+    if acessorios != null:
+        acessorios.configurar(estilo,direcao)

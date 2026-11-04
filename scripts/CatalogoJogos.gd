@@ -20,7 +20,9 @@ const JOGOS := {
     "galaxia_poligonal":{"nome":"Galaxia Poligonal","cpu":160,"gpu":220,"ram":16,"ssd":500,"orcamento":5000},
     "fronteira_fotonica":{"nome":"Fronteira Fotonica","cpu":160,"gpu":220,"ram":16,"ssd":500,"orcamento":5100},
     "imperio_cristal":{"nome":"Imperio de Cristal","cpu":160,"gpu":220,"ram":16,"ssd":500,"orcamento":5200},
-    "universo_malha":{"nome":"Universo em Malha","cpu":160,"gpu":220,"ram":16,"ssd":500,"orcamento":5300}
+    "universo_malha":{"nome":"Universo em Malha","cpu":160,"gpu":220,"ram":16,"ssd":500,"orcamento":5300},
+    "oficina_orbital_ii":{"nome":"Oficina Orbital II","cpu":180,"gpu":220,"ram":16,"ssd":500,"orcamento":5600,"lancamento":14},
+    "universo_malha_ii":{"nome":"Universo em Malha II","cpu":180,"gpu":300,"ram":16,"ssd":1000,"orcamento":6500,"lancamento":28}
 }
 
 static func buscar(id: String) -> Dictionary:

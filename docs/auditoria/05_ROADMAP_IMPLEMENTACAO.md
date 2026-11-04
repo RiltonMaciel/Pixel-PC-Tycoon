@@ -1,5 +1,29 @@
 # 05 - Roadmap incremental de implementação
 
+## Próximas entregas após evolução da campanha/mundo
+
+Já integrados: metas opcionais, calendário datado, investigação por ensaios,
+pisos/setores, acessórios, diagrama interativo, guia, pausa/safe area, mundo
+limitado e ensaio de oito semanas. Isso não encerra a visão oficial.
+
+| Prioridade | Entrega restante | Dependência | Critério de aprovação |
+|---|---|---|---|
+| 1 | CI Linux do novo PR | Publicação desta branch | Importação, imagens e oito suítes verdes sem exportar APK |
+| 2 | Homologação Android | Aparelho/SDK e autorização para gerar APK | Abrir, pausar, reabrir, trocar slots e usar UI com notch; medir FPS, memória/bateria |
+| 3 | Arte definitiva | Aprovação específica | 33 vistas coerentes, portas, hardware e corpo/roupa/cabelo; pivôs/colisões testados; sem rotações falsas |
+| 4 | IA/densidade | Rotas e visitas já entregues | Evitar sobreposição dinâmica; campanhas orgânicas e eventos narrativos sem bloqueio |
+| 5 | Acabamentos restantes | Arte e decisões visuais | Paredes/acabamentos individuais sem perder saves ou abrir colisões indevidas |
+| 6 | Balanceamento humano prolongado | Campanha automatizada de 56 dias | Diferentes estratégias, dívidas, especialistas/imóveis, sem renda criada por teste |
+| 7 | Release assinado | Keystore em secrets e homologação Android | Exportação release autorizada, instalação/atualização e persistência verificadas |
+
+CI de PR não gera APK; exportação automática ficou restrita a `main`.
+Release manual exige `ANDROID_RELEASE_KEYSTORE_B64`, `ANDROID_RELEASE_ALIAS`
+e `ANDROID_RELEASE_PASSWORD` (senha igual para chave/keystore). Não executado
+nesta etapa. Critérios Android/arte permanecem abertos, não marcados como concluídos.
+
+Referência medida: **3.090 verificações headless, 1.419 renderizadas, 10 testes
+de imagens**, 142 PNGs intactos. As etapas anteriores abaixo são históricas.
+
 ## Atualização mais recente: seis evoluções entregues
 
 Campanha econômica → recorrência/reputação → níveis/fornecedores → quatro OS →

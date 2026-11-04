@@ -426,7 +426,7 @@ func _test_fila_integrada() -> void:
     check(GAME.CLIENTES.validar(game.clientes.estado),"Fila integrada permanece valida apos desistir")
 
 func _test_montagem_avancada() -> void:
-    check(GAME.JOGOS.JOGOS.size() == 20,"Catalogo possui vinte jogos ficticios")
+    check(GAME.JOGOS.JOGOS.size() == 22,"Catalogo possui vinte jogos e duas continuacoes")
     for jogo_id in GAME.JOGOS.JOGOS:
         var modelo := GAME.COMERCIO.new()
         var jogo: Dictionary = GAME.JOGOS.JOGOS[jogo_id]
@@ -436,6 +436,16 @@ func _test_montagem_avancada() -> void:
             pecas = ["caixa_torre","placa_nova","cpu_nova","ram_vento","fonte_firme","ssd_veloz","gpu_trovao","cooler_nova"]
         elif int(jogo["cpu"]) > 100 or int(jogo["gpu"]) > 100 or int(jogo["ram"]) > 8:
             pecas = ["caixa_ninho","placa_aurora","cpu_aurora_pro","ram_brisa16","fonte_clara","ssd_trilha500","gpu_pixel200","cooler_neve"]
+        if jogo.has("lancamento"):
+            for id in GAME.PECAS.PECAS:
+                modelo.estado["estoque"][id] = 1
+            var plano := modelo.plano_automatico()
+            check(plano.size() == 8,"Continuacao possui configuracao acessivel: " + jogo_id)
+            if plano.size() != 8:
+                continue
+            pecas.clear()
+            for categoria in GAME.PECAS.CATEGORIAS:
+                pecas.append(plano[categoria])
         for id in pecas:
             modelo.estado["estoque"][id] = 1
             check(modelo.instalar(id,GAME.PECAS.PECAS[id]["categoria"]),"Instalar " + id + " para " + jogo_id)

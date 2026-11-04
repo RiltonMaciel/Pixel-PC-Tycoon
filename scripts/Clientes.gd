@@ -139,6 +139,8 @@ static func validar(dados: Dictionary) -> bool:
             return false
         if perfil.has("servico") and not SERVICOS.ITENS.has(perfil["servico"]):
             return false
+        if perfil.has("caso") and (perfil.get("servico") != "reparo" or not SERVICOS.CASOS.has(perfil["caso"])):
+            return false
         for campo in ["paciencia","restante"]:
             var valor: Variant = perfil.get(campo)
             if not (valor is float or valor is int) or not is_finite(float(valor)) or float(valor) < 0:

@@ -28,7 +28,11 @@ const PECAS := {
     "fonte_limite": {"nome":"Margem 280 W","categoria":"fonte","custo":140,"venda":180,"watts":280,"pcie":1},
     "caixa_fechada": {"nome":"Compacto sem exaustao","categoria":"gabinete","custo":140,"venda":180,"formatos":["mATX"],"gpu_max":280,"calor":30},
     "kit_limpeza": {"nome":"Kit de limpeza","categoria":"insumo","custo":20,"venda":30},
-    "pasta_termica": {"nome":"Pasta termica","categoria":"insumo","custo":30,"venda":45}
+    "pasta_termica": {"nome":"Pasta termica","categoria":"insumo","custo":30,"venda":45},
+    "cpu_aurora_plus": {"nome":"Aurora Plus","categoria":"cpu","custo":680,"venda":890,"socket":"A1","watts":90,"pontos":180},
+    "ssd_trilha1000": {"nome":"Trilha SATA 1000","categoria":"ssd","custo":460,"venda":600,"conector":"SATA","gb":1000},
+    "ram_vento32": {"nome":"Vento 32 GB","categoria":"ram","custo":420,"venda":550,"tipo":"DDR5","gb":32},
+    "gpu_trovao400": {"nome":"Trovao 400","categoria":"gpu","custo":1200,"venda":1560,"watts":260,"comprimento":330,"pcie":2,"pontos":300}
 }
 
 static func incompatibilidade(instaladas: Dictionary) -> String:

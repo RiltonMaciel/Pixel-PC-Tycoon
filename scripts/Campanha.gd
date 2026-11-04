@@ -9,6 +9,12 @@ const FORNECEDORES := {
 }
 const AVANCADAS := ["caixa_torre","placa_nova","cpu_nova","ram_vento","ssd_veloz","gpu_trovao","fonte_firme","cooler_nova"]
 const INTERMEDIARIAS := ["cpu_aurora_pro","gpu_pixel200","ssd_trilha500","cooler_neve_pro"]
+const LANCAMENTOS := {
+    "cpu_aurora_plus":{"dia":8,"nivel":2},
+    "ssd_trilha1000":{"dia":14,"nivel":2},
+    "ram_vento32":{"dia":21,"nivel":3},
+    "gpu_trovao400":{"dia":28,"nivel":3}
+}
 
 static func inicial() -> Dictionary:
     return {"versao":1,"pecas_legadas":[],"jogos_legados":[],"fornecedor":"bairro","nivel":1}
@@ -42,17 +48,37 @@ static func nivel(comercio: Dictionary, reputacao: int) -> int:
     return int(comercio.get("campanha",{}).get("nivel",1))
 
 static func nivel_peca(id: String) -> int:
+    if LANCAMENTOS.has(id):
+        return int(LANCAMENTOS[id]["nivel"])
     return 3 if id in AVANCADAS else 2 if id in INTERMEDIARIAS else 1
 
 static func nivel_jogo(id: String) -> int:
     var jogo := JOGOS.buscar(id)
     return 3 if int(jogo["cpu"]) > 150 or int(jogo["gpu"]) > 170 else 2 if int(jogo["cpu"]) > 100 or int(jogo["gpu"]) > 100 or int(jogo["ram"]) > 8 or int(jogo["ssd"]) > 240 else 1
 
-static func peca_liberada(id: String, dados: Dictionary, nivel_atual: int) -> bool:
-    return id in dados["pecas_legadas"] or nivel_peca(id) <= nivel_atual
+# O dia e absoluto (CalendarioEconomia.estado.dia), nao o dia do mes.
+static func dia_lancamento(id: String) -> int:
+    return int(LANCAMENTOS[id]["dia"]) if LANCAMENTOS.has(id) else 1 if PECAS.PECAS.has(id) else 0
 
-static func jogo_liberado(id: String, dados: Dictionary, nivel_atual: int) -> bool:
-    return id.is_empty() or id in dados["jogos_legados"] or nivel_jogo(id) <= nivel_atual
+static func lancamentos_no_dia(dia: int) -> Array[String]:
+    var ids: Array[String] = []
+    for id in LANCAMENTOS:
+        if int(LANCAMENTOS[id]["dia"]) == dia:
+            ids.append(id)
+    return ids
+
+# O quarto argumento e opcional: chamadas antigas preservam os tres niveis originais.
+static func peca_liberada(id: String, dados: Dictionary, nivel_atual: int, dia: int = 1) -> bool:
+    if not PECAS.PECAS.has(id):
+        return false
+    if id in dados.get("pecas_legadas",[]):
+        return true
+    return dia >= dia_lancamento(id) and nivel_peca(id) <= nivel_atual
+
+static func jogo_liberado(id: String, dados: Dictionary, nivel_atual: int, dia: int = 1) -> bool:
+    if id.is_empty() or id in dados["jogos_legados"]:
+        return true
+    return dia >= int(JOGOS.buscar(id).get("lancamento",1)) and nivel_jogo(id) <= nivel_atual
 
 static func validar(dados: Dictionary) -> bool:
     if dados.get("versao") != 1 or not dados.get("pecas_legadas") is Array or not dados.get("jogos_legados") is Array or not dados.get("fornecedor") in FORNECEDORES:

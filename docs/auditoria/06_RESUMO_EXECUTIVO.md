@@ -1,5 +1,33 @@
 # 06 - Resumo executivo
 
+## Entrega vigente: campanha ampliada e mundo vivo
+
+**Funciona no desktop:** seis objetivos opcionais; calendário de quatro peças/
+dois novos jogos; três defeitos investigáveis com ensaios/reparo; pisos por
+célula e setores; acessórios persistentes; gabinete esquemático com arraste real;
+guia; pausa/salvamento; pedestres/tráfego limitado e funcionários por rotas.
+Reaproveita o jogo existente e mantém os 142 PNGs aprovados.
+
+**Validação:** 3.090 verificações Godot headless, 1.419 renderizadas e 10 testes
+de imagens, sem falhas; 13 capturas. Campanha de 56 dias/112 PCs inclui salários,
+especialistas, dívida, compra do segundo imóvel e duas ampliações com lucro real.
+Contagens repetem cenários entre modos e não provam todas as estratégias.
+
+**Actions corrigido:** o erro anterior era um cartão fora da área visível no
+teste de arraste, antes da exportação. O teste agora garante visibilidade e
+mantém drag-and-drop nativo. PRs passam a validar sem gerar APK; exportação
+automática somente em `main`, com opção manual release configurada.
+
+**Ainda parcial:** IA sem avoidance completo; acessórios não substituem corpo/
+roupa/cabelo modulares; diagrama não é arte final de hardware; pisos não incluem
+acabamentos de paredes. Faltam 33 vistas aprovadas, portas definitivas e mais
+eventos narrativos. Nenhum redesenho/rotação falsa foi feito para esconder isso.
+
+**Próximo passo:** CI Linux do novo PR e, depois, homologação Android autorizada:
+notch, desempenho/bateria, pausa/reabertura e assinatura release. Não houve APK
+nesta etapa; não declarar o jogo finalizado. Esta atualização prevalece sobre
+os registros históricos seguintes, inclusive suas antigas pendências.
+
 ## Estado atual após a evolução da campanha
 
 Foram entregues os seis avanços solicitados:
