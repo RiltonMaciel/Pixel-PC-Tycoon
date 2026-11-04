@@ -2,6 +2,12 @@ extends RefCounted
 # Catalogo de sprites modulares; recursos SVG sao provisórios e transparentes.
 # Cada entrada possui caminho unico, categoria e preco para futura loja de moveis.
 const ITENS := {
+    "porta_interna":{"nome":"Porta interna (painel modular)","arquivo":"res://Assets/Cenarios/Modular/parede_diagonal_direita.png",
+        "vistas":{"0":"res://Assets/Cenarios/Modular/parede_diagonal_direita.png","90":"res://Assets/Cenarios/Modular/parede_diagonal_esquerda.png"},
+        "preco":180,"isometrico":true,"pivo":Vector2(64,160),"colisao_uv":Vector2(1,0.12)},
+    "divisoria_modular":{"nome":"Divisoria (parede modular aprovada)","arquivo":"res://Assets/Cenarios/Modular/parede_diagonal_direita.png",
+        "vistas":{"0":"res://Assets/Cenarios/Modular/parede_diagonal_direita.png","90":"res://Assets/Cenarios/Modular/parede_diagonal_esquerda.png"},
+        "preco":120,"isometrico":true,"pivo":Vector2(64,160),"colisao_uv":Vector2(1,0.12)},
     "balcao_atendimento": {"nome":"Balcao de atendimento","arquivo":"res://Assets/Moveis/Modulares/balcao_atendimento.png","preco":450,"largura":180,"colisao":Vector2(170,70),"isometrico":true},
     "bancada_montagem_com_computador": {"nome":"Bancada de montagem","arquivo":"res://Assets/Moveis/Modulares/bancada_montagem_com_computador.png","preco":900,"largura":150,"colisao":Vector2(140,64),"isometrico":true},
     "mesa_notebook_com_cadeira": {"nome":"Mesa com notebook","arquivo":"res://Assets/Moveis/Modulares/mesa_notebook_com_cadeira.png","preco":650,"largura":110,"colisao":Vector2(100,58),"isometrico":true},
@@ -61,6 +67,8 @@ static func textura_orientada(id: String, angulo: int = 0) -> Texture2D:
     var item: Dictionary = dados(id)
     if item.is_empty():
         return null
+    if item.has("vistas"):
+        return load(item["vistas"][str(angulo)]) as Texture2D if item["vistas"].has(str(angulo)) else null
     var candidato: String = pasta_orientacoes(id).path_join(str(angulo) + ".png")
     if ResourceLoader.exists(candidato):
         return load(candidato) as Texture2D
@@ -73,6 +81,11 @@ static func orientacoes_disponiveis(id: String) -> Array[int]:
     var resultado: Array[int] = []
     var item: Dictionary = dados(id)
     if item.is_empty():
+        return resultado
+    if item.has("vistas"):
+        for angulo in [0,90,180,270]:
+            if item["vistas"].has(str(angulo)) and ResourceLoader.exists(item["vistas"][str(angulo)]):
+                resultado.append(angulo)
         return resultado
     var pasta: String = pasta_orientacoes(id)
     for angulo in [0, 90, 180, 270]:

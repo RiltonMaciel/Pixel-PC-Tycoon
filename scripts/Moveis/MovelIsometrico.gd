@@ -10,6 +10,8 @@ var orientacao_confirmada: int = 0
 var posicao_confirmada: Vector2 = Vector2.ZERO
 var em_edicao: bool = false
 var visual: Sprite2D
+var porta_aberta := false
+var rotulo_porta: Label
 
 func _ready() -> void:
     visual = Sprite2D.new()
@@ -17,6 +19,11 @@ func _ready() -> void:
     visual.centered = false
     visual.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     add_child(visual)
+    if item_id == "porta_interna":
+        rotulo_porta = Label.new()
+        rotulo_porta.position = Vector2(-40,-75)
+        rotulo_porta.add_theme_font_size_override("font_size",12)
+        add_child(rotulo_porta)
     _atualizar()
 
 func configurar(id: String, posicao: Vector2, angulo: int = 0) -> void:
@@ -56,12 +63,14 @@ func iniciar_edicao() -> void:
     orientacao_confirmada = orientacao
     em_edicao = true
     modulate.a = 0.65
+    _atualizar()
 
 func confirmar() -> void:
     posicao_confirmada = position
     orientacao_confirmada = orientacao
     em_edicao = false
     modulate = Color.WHITE
+    _atualizar()
 
 func cancelar() -> void:
     position = posicao_confirmada
@@ -70,22 +79,39 @@ func cancelar() -> void:
     modulate = Color.WHITE
     _atualizar()
 
-func dimensoes_colisao() -> Vector2:
+func dimensoes_colisao(confirmado: bool = false) -> Vector2:
     var dados: Dictionary = CATALOGO.dados(item_id)
+    if dados.has("colisao_uv"):
+        var uv: Vector2 = dados["colisao_uv"]
+        return Vector2(64,32) * (uv.x + uv.y)
     var tamanho: Vector2 = dados.get("colisao", Vector2(48, 32))
-    return Vector2(tamanho.y, tamanho.x) if orientacao % 2 == 1 else tamanho
+    var angle := orientacao_confirmada if confirmado else orientacao
+    if angle % 2 == 0:
+        return tamanho
+    if dados.get("isometrico",false):
+        # No grid 2:1, o giro troca eixos do mundo, nao largura e altura da tela.
+        return Vector2(tamanho.y * 2.0,tamanho.x * 0.5)
+    return Vector2(tamanho.y,tamanho.x)
 
 func serializar() -> Dictionary:
     var at := posicao_confirmada if em_edicao else position
     var angle := orientacao_confirmada if em_edicao else orientacao
-    return {"id": item_id, "posicao": [at.x, at.y], "angulo": ANGULOS[angle]}
+    var dados := {"id": item_id, "posicao": [at.x, at.y], "angulo": ANGULOS[angle]}
+    if item_id == "porta_interna":
+        dados["aberta"] = porta_aberta
+    return dados
 
 func poligono_colisao(at: Vector2, margem: float = 0.0, confirmado: bool = false) -> PackedVector2Array:
     var dados := CATALOGO.dados(item_id)
-    var dimensoes: Vector2 = dados.get("colisao",Vector2(48,32))
-    var angle := orientacao_confirmada if confirmado else orientacao
-    if angle % 2 == 1:
-        dimensoes = Vector2(dimensoes.y,dimensoes.x)
+    if dados.has("colisao_uv"):
+        var uv: Vector2 = dados["colisao_uv"]
+        if (orientacao_confirmada if confirmado else orientacao) % 2 == 1:
+            uv = Vector2(uv.y,uv.x)
+        var u := Vector2(64,32) * uv.x * 0.5
+        var v := Vector2(-64,32) * uv.y * 0.5
+        var forma := PackedVector2Array([at-u-v,at+u-v,at+u+v,at-u+v])
+        return Geometry2D.offset_polygon(forma,margem * 2.0)[0] if margem > 0 else forma
+    var dimensoes := dimensoes_colisao(confirmado)
     if dados.get("isometrico",false):
         var centro := at - Vector2(0,dimensoes.y * 0.5)
         var raio := dimensoes * 0.5 + Vector2.ONE * margem * 2.0
@@ -94,6 +120,8 @@ func poligono_colisao(at: Vector2, margem: float = 0.0, confirmado: bool = false
     return PackedVector2Array([at + Vector2(-size.x,-size.y), at + Vector2(size.x,-size.y), at + Vector2(size.x,margem), at + Vector2(-size.x,margem)])
 
 func contem_ponto(at: Vector2) -> bool:
+    if item_id == "porta_interna" and porta_aberta:
+        return at.distance_to(position) < 36
     if visual == null or visual.texture == null:
         return false
     var local := visual.to_local(at)
@@ -118,3 +146,13 @@ func _atualizar() -> void:
     var escala := float(dados.get("largura",tamanho.x)) / tamanho.x if dados.has("largura") else float(dados.get("escala",1.0))
     visual.scale = Vector2.ONE * escala
     visual.z_index = 0
+    if item_id == "porta_interna":
+        visual.visible = not porta_aberta or em_edicao
+        if rotulo_porta != null:
+            rotulo_porta.text = "Porta aberta" if porta_aberta else "Porta fechada"
+    queue_redraw()
+
+func _draw() -> void:
+    if item_id == "porta_interna" and porta_aberta:
+        var eixo := Vector2(32,16) if orientacao % 2 == 0 else Vector2(-32,16)
+        draw_line(-eixo,eixo,Color(0.35,0.85,0.6,0.8),2.0)

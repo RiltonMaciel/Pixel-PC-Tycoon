@@ -1,0 +1,223 @@
+{
+  "arte_e_pivo_fisico": "NAO APROVADOS; requerem referencia e decisao artistica",
+  "engine": "4.4.1-stable (official)",
+  "escala_do_pr_9_aplicada": false,
+  "falhas_de_comportamento": 0,
+  "geometria_colisao_2_1": "REPROVADA",
+  "item": "balcao_pc_store",
+  "medidas": [
+    {
+      "angulo": 0,
+      "bbox_alfa": [
+        8,
+        138,
+        248,
+        248
+      ],
+      "canvas": [
+        256.0,
+        256.0
+      ],
+      "colisao_local": [
+        [
+          0.0,
+          -64.0
+        ],
+        [
+          64.0,
+          -32.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -64.0,
+          -32.0
+        ]
+      ],
+      "colisao_sem_margem_alinha_grid_2_1": true,
+      "dimensoes_colisao": [
+        128.0,
+        64.0
+      ],
+      "escala": [
+        0.649999976158142,
+        0.649999976158142
+      ],
+      "pivo_canvas": [
+        128.0,
+        248.0
+      ],
+      "pivo_fisico_aprovado": false,
+      "posicao_mundo": [
+        700.0,
+        400.0
+      ],
+      "tamanho_opaco_mundo": [
+        155.999994277954,
+        71.4999973773956
+      ]
+    },
+    {
+      "angulo": 90,
+      "bbox_alfa": [
+        8,
+        26,
+        248,
+        248
+      ],
+      "canvas": [
+        256.0,
+        256.0
+      ],
+      "colisao_local": [
+        [
+          0.0,
+          -128.0
+        ],
+        [
+          32.0,
+          -64.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -32.0,
+          -64.0
+        ]
+      ],
+      "colisao_sem_margem_alinha_grid_2_1": false,
+      "dimensoes_colisao": [
+        64.0,
+        128.0
+      ],
+      "escala": [
+        0.649999976158142,
+        0.649999976158142
+      ],
+      "pivo_canvas": [
+        128.0,
+        248.0
+      ],
+      "pivo_fisico_aprovado": false,
+      "posicao_mundo": [
+        700.0,
+        400.0
+      ],
+      "tamanho_opaco_mundo": [
+        155.999994277954,
+        144.299994707108
+      ]
+    },
+    {
+      "angulo": 180,
+      "bbox_alfa": [
+        8,
+        133,
+        248,
+        248
+      ],
+      "canvas": [
+        256.0,
+        256.0
+      ],
+      "colisao_local": [
+        [
+          0.0,
+          -64.0
+        ],
+        [
+          64.0,
+          -32.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -64.0,
+          -32.0
+        ]
+      ],
+      "colisao_sem_margem_alinha_grid_2_1": true,
+      "dimensoes_colisao": [
+        128.0,
+        64.0
+      ],
+      "escala": [
+        0.649999976158142,
+        0.649999976158142
+      ],
+      "pivo_canvas": [
+        128.0,
+        248.0
+      ],
+      "pivo_fisico_aprovado": false,
+      "posicao_mundo": [
+        700.0,
+        400.0
+      ],
+      "tamanho_opaco_mundo": [
+        155.999994277954,
+        74.7499972581863
+      ]
+    },
+    {
+      "angulo": 270,
+      "bbox_alfa": [
+        8,
+        47,
+        248,
+        248
+      ],
+      "canvas": [
+        256.0,
+        256.0
+      ],
+      "colisao_local": [
+        [
+          0.0,
+          -128.0
+        ],
+        [
+          32.0,
+          -64.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -32.0,
+          -64.0
+        ]
+      ],
+      "colisao_sem_margem_alinha_grid_2_1": false,
+      "dimensoes_colisao": [
+        64.0,
+        128.0
+      ],
+      "escala": [
+        0.649999976158142,
+        0.649999976158142
+      ],
+      "pivo_canvas": [
+        128.0,
+        248.0
+      ],
+      "pivo_fisico_aprovado": false,
+      "posicao_mundo": [
+        700.0,
+        400.0
+      ],
+      "tamanho_opaco_mundo": [
+        155.999994277954,
+        130.649995207787
+      ]
+    }
+  ],
+  "verificacoes": 35
+}

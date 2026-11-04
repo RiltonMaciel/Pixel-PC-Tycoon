@@ -9,7 +9,7 @@ Resolucao de referencia: 432 x 768, retrato. Nao usa .NET nem HTML.
 2. Pressione F5. Nao e necessario instalar o SDK Android para jogar no PC.
 3. Use as setas ou o D-pad (mouse/toque). Clique em A ou pressione Enter para interagir.
 4. Perto da porta da PC Store, A entra. No interior, aproxime-se de `SAIDA [A]`.
-5. Dentro da loja, `Loja` abre o catalogo com 11 moveis/equipamentos. Toque num item para comprar.
+5. Dentro da loja, `Loja` abre 14 moveis/divisorias/portas e acesso a ampliacao. Toque num item para comprar.
 6. Arraste pelo piso. `Girar` troca a textura quando existem vistas adicionais; `OK` ou A confirma.
    Vermelho indica colisao ou bloqueio da entrada. O dinheiro so e descontado na confirmacao.
 7. Toque/clique em um movel existente: `Mover`, `Girar`, `Vender`, `Cancelar`, `OK`.
@@ -22,13 +22,150 @@ ficam mercadinho, farmacia, loja de roupas, restaurante e salas comerciais.
 O nome historico da janela (V0.4.8) foi mantido para preservar o caminho dos saves;
 nao indica que as fachadas novas estao ausentes.
 
-Montagem, Estoque e atendimento comercial continuam pendentes; o NPC apenas conversa.
-As imagens legadas foram preservadas.
+O primeiro ciclo comercial e a primeira montagem manual estao integrados.
+As imagens legadas e os sprites aprovados foram preservados.
+
+## Partidas, comercio e primeiro PC
+
+- `Menu` oferece tres partidas independentes e `Salvar agora`. A ultima partida
+  escolhida e restaurada ao reabrir; trocar de slot salva a anterior primeiro.
+  Conclua ou cancele edicoes antes da troca. O retorno e ao exterior da loja,
+  nao a uma posicao de personagem persistida.
+- A construcao verifica rotas entre jogador, entrada, saida e estacoes.
+  Fechar corredores ou prender o cliente impede confirmar, sem cobrar.
+  Remover um obstaculo continua permitido; layouts antigos nao sao rearranjados.
+- Aproxime-se da mesa com notebook e pressione A, ou abra `Estoque`.
+  Tres fornecedores oferecem 26 componentes/consumiveis ficticios, com desbloqueios por nivel.
+  Cada clique encomenda uma unidade
+  e debita o custo; a peca ainda nao entra no estoque.
+- A entrega leva **30, 25 ou 20 segundos de simulacao ativa**, conforme fornecedor. Em `Estoque`, use
+  `Receber` quando estiver pronta. Receber novamente nao duplica a quantidade.
+  O prazo restante persiste; nao ha avanco de entregas com o aplicativo fechado.
+- No balcao, `Cliente` permite chamar um comprador para uma peca disponivel.
+  Tambem chegam clientes a fila de ate quatro pessoas, se houver estoque.
+  O intervalo-base de 20 segundos varia com clima/eventos e reputacao. Cada perfil possui
+  orcamento, preferencia e paciencia; o primeiro com oferta acessivel e atendido.
+  Ele caminha por rotas livres e espera.
+  Aproxime-se e escolha `Vender e receber`; estoque e dinheiro mudam uma vez.
+- Aceite `Pedido PC` em `Cliente`. Orcamento inicial: R$ 2450; requisitos:
+  CPU/GPU 100 pontos, RAM 8 GB e SSD 240 GB. So ha um atendimento por vez.
+- Compre e receba: Ninho Mini, Aurora M1, Aurora Quad, Brisa 8 GB, Clara 450 W,
+  Trilha SATA 240, Pixel 100 e Neve 100. Custo total: R$ 1780.
+- Aproxime-se da bancada e pressione A ou `Montagem`. Arraste cada cartao de
+  componente ao encaixe, ou toque na opcao para instalar individualmente.
+  Comece pelo gabinete e placa; CPU antes do cooler. Toque num encaixe instalado
+  para remover a peca, respeitando as dependencias.
+- O jogo verifica socket, RAM, formato da placa, tamanho da GPU, conectores,
+  potencia e cooler. Pecas instaladas saem do estoque vendavel. Cancelar o
+  pedido devolve as pecas; nao existe taxa de cancelamento nesta primeira entrega.
+- Conecte os cabos e execute o teste de boot/requisitos. Volte ao balcao para
+  entregar o PC testado. Sua configuracao permanece salva; pagamento nao se repete.
+  Alterar componentes invalida cabos/teste anteriores.
+- `Estoque` mostra compras, receita, custo das mercadorias vendidas (CMV) e
+  lucro bruto comercial. `Financas` separa despesas e fechamento diario.
+  Os precos e prazos deste primeiro ciclo sao parametros provisorios de balanceamento.
+
+A bancada usa **cartoes esquematicos**, nao novos sprites finais de hardware.
+Nao inclui ainda montagem grafica dentro do gabinete. As fatias adicionais abaixo nao equivalem ao
+escopo final completo do documento mestre.
+
+## Calendario, clientes, servicos e equipe
+
+- Dia de **900 segundos reais**, semana de 7 dias, mes de 28 e ano de 12 meses.
+  Editar/construir moveis pausa relogio, entregas, paciencia e funcionarios.
+  Outros paineis nao pausam o dia. Nao ha avanco com o aplicativo fechado.
+- Em `Financas`, consulte os ultimos sete fechamentos, pague contas e abra
+  funcionarios/imoveis. Cada virada cobra **R$ 100 de aluguel + R$ 20 de energia**
+  da operacao, mais salarios. Sem dinheiro, o restante vira divida, nunca caixa
+  negativo. Reabrir nao cobra novamente. Lucro liquido aqui desconta CMV e essas
+  despesas; compras de moveis, ampliacoes e imoveis sao investimentos separados.
+- Perfis e historico persistem. Compra soma 2 de reputacao; desistencia tira 4 e
+  cancelamento tira 1. Compradores retornam com a mesma identidade em 1 a 3 dias;
+  os demais em 4 dias. Reputacao afeta demanda, paciencia de novos clientes e
+  desbloqueios de pedidos. A fila aparece no interior; falta avoidance dinamico completo.
+- A oficina aceita **quatro PCs/OS simultaneos**, contando a montagem ativa.
+  Depois de autorizar uma OS, `Guardar PC` reserva seus insumos e libera o balcao.
+  Reservas nao podem ser vendidas nem consumidas por outra ordem. Retome na bancada;
+  prioridade urgente/normal/baixa orienta o tecnico, com desempate por chegada.
+  Cancelar antes do consumo devolve a reserva uma unica vez.
+  Ha uma bancada/atendimento ativo por vez; nao e uma fila de montagens completas.
+- `Cliente` oferece **20 jogos ficticios**, todos com configuracao compativel
+  e financeiramente possivel verificada. Na bancada, o teste mede requisitos,
+  temperatura e reserva da fonte. Trocar cooler/fonte corrige falhas reais de
+  gameplay; alterar pecas invalida cabos e diagnostico anteriores.
+- `Cliente > Assistencia tecnica / OS`: receba upgrade de RAM, diagnostico,
+  troca de fonte, limpeza ou manutencao preventiva. Diagnostique na bancada,
+  aprove no balcao, execute com pecas/insumos, teste e entregue no balcao.
+  Cada tipo tem um cenario inicial representativo, nao diagnostico universal.
+  Pecas removidas pertencem ao cliente; nunca entram como estoque gratuito.
+  Cancelar antes do consumo nao gera receita; depois da autorizacao a paciencia
+  do cliente fica pausada durante a execucao/retirada.
+- `Financas > Funcionarios`: seis candidatos. Lia/Rui/Sol custam R$ 50/80/40 por dia;
+  Nina/Ivo/Luz, especialistas liberados no nivel 2, custam R$ 100/110/75.
+  O contrato so e efetivado por sua escolha. Caixa aprova OS e
+  recebe vendas prontas; tecnico diagnostica/executa/testa OS; estoquista recebe
+  entregas. Montador instala pecas do estoque, conecta e testa com as mesmas regras
+  manuais; nao compra nem cria pecas. Se o PC parcial nao puder atender ao pedido,
+  aguarda revisao manual, sem desmontar componentes por conta propria.
+  Atribuicoes sao flexiveis, sem dois ocupantes da mesma funcao.
+  Habilidade por funcao cresce a cada cinco tarefas e reduz o intervalo de acao.
+  Tecnico e montador esperam quando o painel manual de montagem/OS esta aberto.
+  Salario e proporcional ao tempo contratado, arredondado para real inteiro no
+  fechamento; demissao nao apaga valores devidos. Sem posto/insumo a tarefa
+  aguarda, mas o salario continua devido. Tarefas fora da camera sao simuladas
+  com os postos salvos; dentro, exigem funcionario em posicao livre no posto.
+
+## Reforma, imovel maior e ambiente
+
+- Em `Loja > Ampliar planta`, cada imovel admite duas ampliacoes instantaneas:
+  R$ 1800 e R$ 3600. A planta inicial passa de 6 x 5 para 8 x 6 e 10 x 7;
+  moveis continuam no lugar, entrada/camera acompanham os modulos novos.
+  Novas rotas sao verificadas; falha de gravacao desfaz compra e planta.
+- A divisoria reutiliza as duas paredes diagonais aprovadas, com colisao na
+  base projetada e duas vistas reais. Use `Girar`; deixe vaos para circulacao.
+  A porta interna custa R$ 180 e reutiliza esses paineis. A abre/fecha uma porta
+  proxima; ao selecionar uma porta, a barra oferece `Porta`. Aberta libera passagem;
+  fechar sobre ator ou bloquear rotas e recusado. Estado aberto persiste.
+  E uma representacao provisoria, sem nova arte/animacao nem editor de acabamento.
+- Nas **Salas comerciais**, no extremo direito do bairro, A abre a compra do
+  imovel de 10 x 8 por R$ 8500. Ele vem vazio, aceita ampliacoes e tem
+  entrada/saida pela fachada existente. Cada propriedade preserva seus moveis.
+  Equipe, estoque e atendimento pertencem a **uma unidade ativa por vez**,
+  restaurada ao reabrir. Termine atendimentos/fila antes de trocar de unidade.
+  O custo diario fixo de operacao nao multiplica por imovel adquirido.
+- O exterior tem dia/noite e chuva procedural, sem PNGs novos; interior e HUD
+  permanecem iluminados. Previsao/evento sao derivados do calendario salvo.
+  Feira semanal aumenta chegadas; dia tranquilo/chuva reduzem a demanda.
+  Ainda nao ha guarda-chuvas, transito ou eventos narrativos completos.
+- A [suite de simulacao](tests/test_simulation.gd) cobre estes blocos, persistencia,
+  salarios/dividas, falhas de escrita e integracao real de OS/equipe/imoveis.
+  Android e desempenho em aparelho continuam pendentes.
+
+## Campanha, tecnologia e camera
+
+- `Financas` mostra margem, ponto de equilibrio e reserva de capital. O ensaio
+  deterministico de sete dias compra/recebe/monta/vende dois PCs-base por dia,
+  sem injetar estoque ou caixa: custo R$ 1780, venda R$ 2450, margem R$ 670.
+  Com Lia/Rui/Sol, despesas sao R$ 290/dia; lucro R$ 1050/dia.
+  Caixa inicial R$ 6500 chega a R$ 13850. E uma campanha economica de referencia,
+  nao garantia de demanda nem validacao de todas as estrategias.
+- Nivel 2: reputacao >=45 e dois PCs entregues ou receita >=R$ 5000.
+  Nivel 3: reputacao >=60 e cinco PCs ou receita >=R$ 15000.
+  Cada limiar de receita/PCs exige tambem a reputacao indicada.
+  Desbloqueios sao permanentes; `Estoque` permite escolher fornecedor do nivel.
+  Pedidos de jogos e pecas avancadas respeitam o nivel no controlador e na UI.
+  Saves antigos mantem pecas adquiridas/recompraveis, pedidos de jogos existentes,
+  funcionarios e propriedades; nao ha confisco nem reinicio.
+- Arraste em area livre para mover a camera; dois dedos fazem pinca.
+  No PC, use arraste com botao direito, roda ou gestos do trackpad.
+  D-pad e edicao de moveis mantem seus dedos; paineis bloqueiam gestos do mundo.
+  `Financas > Recentralizar camera` restaura enquadramento e seguimento externo.
+  Zoom vai de 0,75 a 4 vezes o enquadramento-base.
 
 No bairro, caminhe nas calcadas e atravesse pelas faixas brancas. O asfalto fora
 das travessias, o predio, banco, poste, vasos e lixeira bloqueiam os pes do personagem.
 Ha tres veiculos decorativos parados, sem transito. As outras lojas nao funcionam
-internamente: A nas fachadas informa que o interior ainda esta indisponivel.
+internamente, exceto o imovel compravel das Salas comerciais.
 
 ## O que foi integrado
 
@@ -69,20 +206,43 @@ internamente: A nas fachadas informa que o interior ainda esta indisponivel.
 
 **Limitacoes:** os 11 moveis novos possuem uma unica vista: girar informa a falta
 de arte e nao altera a colisao nem simula rotacao. O balcao antigo de quatro vistas
-continua disponivel para saves anteriores. A animacao da porta usa
+continua compravel e compativel com saves anteriores. A animacao da porta usa
 recortes deformados da propria fachada, nao frames finais de um artista.
-Os equipamentos compostos ainda sao decorativos: esta etapa nao implementa montagem,
-uso do notebook, encaixe de objetos sobre mesas nem expansao compravel.
+Notebook, balcao e bancada agora abrem as atividades descritas acima. Seus
+PNGs compostos continuam intactos; nao ha encaixe visual de objetos sobre mesas
+nem encaixe grafico de hardware dentro do gabinete.
 Veja [os prompts de arte](ARTE_PENDENTE.md).
+
+O giro da colisao isometrica respeita a projecao 2:1, sem trocar diretamente
+largura e altura da tela. A base do balcao PC Store permanece 128 x 64 nas quatro
+orientacoes; PNGs, pivos e escala 0,65 foram preservados. Isso nao aprova a
+coerencia artistica das vistas. A [ferramenta de medicao](tools/medir_balcao.gd)
+registra colisao, giro, cancelamento e recarga com saves isolados; veja as
+[evidencias e instrucoes](docs/auditoria/03_AUDITORIA_SPRITES.md).
 
 ## Saves
 
 - Arquivo: `user://pixel_pc_tycoon_v1.json` (nome mantido), agora com `versao: 2`,
-  dinheiro e `imoveis`.
+  dinheiro, `imoveis` e o bloco opcional `comercio` (versao interna 1).
+- Slot 1 reutiliza o arquivo original, sem copiar o progresso para outras partidas.
+  Slots 2 e 3 usam os sufixos `.slot2` e `.slot3`, cada um com seus proprios backups.
+  Somente o slot 1 importa saves legados.
+- A escolha do slot fica em `.slots.cfg`, com escrita temporaria e backup.
+  Se essa selecao estiver invalida, o jogo informa o problema e permite escolher
+  um slot pelo Menu; nao sobrescreve os saves para resolver a selecao.
+- Manual e autosave escrevem o mesmo arquivo do slot ativo. Nao sao dois pontos
+  de restauracao separados. Comercio persiste estoque, entregas, caixa,
+  cliente ativo, pecas reservadas, cabos, teste e configuracoes entregues.
 - Cada imovel possui `moveis` e `guardados`: `id`, `posicao: [x,y]` e `angulo`.
 - Escrita temporaria e backup `.bak`. Erros sao mostrados no HUD e no log.
-- Save invalido bloqueia a partida para nao sobrescrever o original.
-  Preserve o arquivo e restaure um backup valido antes de continuar.
+- Se o principal estiver invalido ou ausente, o jogo tenta recuperar o `.bak`
+  validado antes de procurar um save legado. O HUD e o log informam a recuperacao.
+- O principal danificado fica preservado em `.corrompido`, com sufixos numericos
+  se o nome ja existir. O backup e copiado e validado em `.recuperacao.tmp` antes
+  de restaurar o principal; um autosave posterior nao substitui o backup por lixo.
+- Sem copia valida ou se a restauracao falhar, a partida continua bloqueada,
+  com erro explicito e arquivos preservados. Nao inicia uma partida nova por cima
+  dos arquivos danificados. Pelo Menu, outro slot valido continua acessivel.
 - Saves v1 e v042 preservam saldo e moveis. Como a planta mudou, moveis antigos
   ficam guardados; use `Loja > Recuperar` para posiciona-los sem pagar novamente.
   Cancelar a recuperacao mantem o objeto guardado. O aviso aparece ao entrar.
@@ -101,13 +261,47 @@ Com o executavel Godot disponivel no PATH:
 godot --headless --path . --editor --import --quit
 godot --headless --path . --quit-after 30
 godot --headless --path . --script .\tests\test_game.gd
+godot --headless --path . --script .\tests\test_save_recovery.gd
+godot --headless --path . --script .\tests\test_progression.gd
+godot --headless --path . --script .\tests\test_simulation.gd
+godot --headless --path . --script .\tests\test_campaign.gd
 ```
 
-O teste cria e remove seus proprios saves; nao usa o progresso do jogador.
+Validacao atual, em copia isolada do projeto:
+701 verificacoes de campanha, 448 de simulacao, 612 de gameplay, 257 de progressao e 162 de
+recuperacao, todas headless e sem falhas, mais 10 testes de assets.
+Com renderizacao nesta etapa: 705 de campanha e 262 de progressao, incluindo nove
+capturas no conjunto. Importacao sem erros de parsing/carregamento;
+SHA-256 dos 142 PNGs originais inalterado. O workflow inclui a nova suite,
+mas nao foi acionado para produzir APK nesta entrega.
+
+A suite `test_campaign.gd` cobre sete dias economicamente sustentaveis, retorno
+de clientes no controlador, desbloqueios/legados, quatro OS com reservas/prioridade,
+rollback e recuperacao de perfis/reservas/prioridades/nivel corrompidos,
+montador para os 20 jogos, pinca/arraste reais, limites de zoom e portas
+com colisao, edicao e restauracao. Os cenarios renderizados repetem verificacoes
+headless; essas contagens nao sao numeros de requisitos unicos.
+
+A suite `test_progression.gd` cobre slots, migracao, falhas de selecao/escrita,
+corredor bloqueado sem sobreposicao, rotas do cliente, entrega de fornecedor,
+estoque, livro-caixa, pagamento unico, compatibilidade e montagem parcial.
+Valida drag-and-drop real dentro da janela, boot, entrega e recuperacao comercial.
+Foram aprovadas 257 verificacoes headless e 262 renderizadas com cinco capturas.
+As suites existentes passaram com 611 e 162 verificacoes. O workflow foi
+atualizado, mas nao executado remotamente; Android continua sem aceite.
+
+Os testes criam e removem seus proprios saves; nao usam o progresso do jogador.
+Para QA de importacao/inicializacao, prefira uma copia isolada do projeto.
 Verifica entrada/saida, piso, rota do NPC, controles, compra, colisao, giro,
 cancelamento, venda, reinicio e migracao. Nao substitui teste em aparelho Android.
 Tambem verifica sala modular em dois tamanhos, layout inicial, enquadramento,
 sprites direcionais e recuperacao de moveis de saves antigos.
+A suite `test_save_recovery.gd` verifica principal valido, corrupcao de JSON e
+estrutura, backup ausente/invalido, migracao v1, preservacao sem sobrescrita,
+falha de restauracao, autosave posterior e mensagens/bloqueio na cena principal.
+Os avisos de recuperacao sao esperados; os erros terminais esperados sao
+suprimidos apenas durante as chamadas negativas do teste e conferidos pelo HUD
+e por `ultimo_erro`. Os erros reais de script continuam reprovando a validacao.
 O bairro tem testes de proporcao personagem/banco/portas, conectividade das
 tres travessias e das extremidades das calcadas, limites, obstaculos e movimento
 bloqueado fora das faixas. O teste renderizado tambem amostra os pixels das
