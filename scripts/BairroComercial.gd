@@ -89,6 +89,8 @@ func _ready() -> void:
     vizinhanca = VIZINHANCA.new()
     add_child(vizinhanca)
     vizinhanca.configurar(Transform2D(U,V,ORIGEM),_fachada)
+    # Ativa os recursos detalhados ja presentes em Assets/Cenarios/PreviaVisual.
+    definir_previa(true)
 
 func _draw() -> void:
     _piso(Rect2(0,0,TAMANHO.x,RUA_INICIO),Color.WHITE,CALCADA)
