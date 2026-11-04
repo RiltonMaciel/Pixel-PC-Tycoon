@@ -83,6 +83,34 @@ jobs:
           cat /tmp/tests.log
           grep -Eq '^RESULT: [0-9]+ passed, 0 failed$' /tmp/tests.log
           if grep -Eqi '(SCRIPT ERROR|Parse Error|ERROR:)' /tmp/tests.log; then exit 1; fi
+      - name: Testar recuperacao segura de saves
+        run: |
+          set -euo pipefail
+          timeout 90 "$HOME/godot-bin/godot" --headless --path . --script tests/test_save_recovery.gd > /tmp/save-tests.log 2>&1 || { cat /tmp/save-tests.log; exit 1; }
+          cat /tmp/save-tests.log
+          grep -Eq '^RESULT: [0-9]+ passed, 0 failed$' /tmp/save-tests.log
+          if grep -Eqi '(SCRIPT ERROR|Parse Error|ERROR:)' /tmp/save-tests.log; then exit 1; fi
+      - name: Testar slots, construcao, comercio e montagem
+        run: |
+          set -euo pipefail
+          timeout 120 "$HOME/godot-bin/godot" --headless --path . --script tests/test_progression.gd > /tmp/progression-tests.log 2>&1 || { cat /tmp/progression-tests.log; exit 1; }
+          cat /tmp/progression-tests.log
+          grep -Eq '^RESULT: [0-9]+ passed, 0 failed$' /tmp/progression-tests.log
+          if grep -Eqi '(SCRIPT ERROR|Parse Error|ERROR:)' /tmp/progression-tests.log; then exit 1; fi
+      - name: Testar calendario, clientes, OS, equipe e mundo
+        run: |
+          set -euo pipefail
+          timeout 120 "$HOME/godot-bin/godot" --headless --path . --script tests/test_simulation.gd > /tmp/simulation-tests.log 2>&1 || { cat /tmp/simulation-tests.log; exit 1; }
+          cat /tmp/simulation-tests.log
+          grep -Eq '^RESULT: [0-9]+ passed, 0 failed$' /tmp/simulation-tests.log
+          if grep -Eqi '(SCRIPT ERROR|Parse Error|ERROR:)' /tmp/simulation-tests.log; then exit 1; fi
+      - name: Testar campanha, recorrencia, progressao e oficina
+        run: |
+          set -euo pipefail
+          timeout 200 "$HOME/godot-bin/godot" --headless --path . --script tests/test_campaign.gd > /tmp/campaign-tests.log 2>&1 || { cat /tmp/campaign-tests.log; exit 1; }
+          cat /tmp/campaign-tests.log
+          grep -Eq '^RESULT: [0-9]+ passed, 0 failed$' /tmp/campaign-tests.log
+          if grep -Eqi '(SCRIPT ERROR|Parse Error|ERROR:)' /tmp/campaign-tests.log; then exit 1; fi
       - name: Preparar exportacao Android
         run: |
           set -euo pipefail

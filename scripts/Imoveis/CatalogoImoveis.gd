@@ -20,19 +20,30 @@ const IMOVEIS := {
             {"id":"mesa_notebook_com_cadeira","uv":Vector2(1.25,2.5)},
             {"id":"prateleira_componentes","uv":Vector2(1.25,4)}
         ],
+    },
+    "pc_store_002":{
+        "nome":"PC Store - Salas comerciais","exterior_id":"rua_comercial","interior_id":"loja_pc_ampla",
+        "interior_cenario":"res://Assets/Cenarios/Loja_Base_Aprovada.png",
+        "origem":Vector2(700,240),"modulos":Vector2i(10,8),"entrada_uv":Vector2(9.2,2),"saida_uv":Vector2(9.8,2),
+        "piso_legado":[],"moveis_iniciais":[],
+        "entrada_bairro":Vector2(65,10),"preco":8500
     }
 }
 
-static func buscar(id: String) -> Dictionary:
-    if not IMOVEIS.has(id):
+static func buscar(id: String, nivel: int = 0) -> Dictionary:
+    if not IMOVEIS.has(id) or nivel < 0 or nivel > 2:
         push_error("Imovel desconhecido: " + id)
         return {}
     var dados: Dictionary = IMOVEIS[id].duplicate(true)
+    dados["nivel"] = nivel
+    dados["modulos"] += Vector2i(nivel * 2,nivel)
+    dados["entrada_uv"].x += nivel * 2
+    dados["saida_uv"].x += nivel * 2
     dados["piso_interno"] = MODULAR.poligono(dados["modulos"],dados["origem"])
     dados["entrada_interna"] = MODULAR.ponto(dados["entrada_uv"],dados["origem"])
     dados["saida_interna"] = MODULAR.ponto(dados["saida_uv"],dados["origem"])
-    dados["porta_externa"] = BAIRRO.local_loja(BAIRRO.PORTA_LOCAL)
-    dados["saida_externa"] = BAIRRO.local_loja(BAIRRO.SPAWN_LOCAL)
+    dados["porta_externa"] = BAIRRO.ponto(dados["entrada_bairro"]) + Vector2(0,28) if dados.has("entrada_bairro") else BAIRRO.local_loja(BAIRRO.PORTA_LOCAL)
+    dados["saida_externa"] = BAIRRO.ponto(dados["entrada_bairro"]) + Vector2(0,50) if dados.has("entrada_bairro") else BAIRRO.local_loja(BAIRRO.SPAWN_LOCAL)
     dados["rota_cliente"] = BAIRRO.rota_cliente()
     return dados
 

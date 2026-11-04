@@ -45,6 +45,7 @@ func _run() -> void:
         printerr("FAIL: Testes excederam 45 segundos.")
         quit(1))
     check(DirAccess.make_dir_absolute(temp_dir) == OK,"Pasta isolada de testes")
+    _test_projecao_colisao()
     game = _new_game()
     await process_frame
     await _test_bairro()
@@ -153,6 +154,21 @@ func _run() -> void:
         check(item.rotation == 0.0 and item.visual.rotation == 0.0,"PNG nao gira em 2D")
         check(item.visual.offset == Vector2(-128,-248),"Pivo consistente")
         check(item.visual.texture.get_size() == Vector2(256,256),"Canvas consistente")
+        var colisao: PackedVector2Array = item.poligono_colisao(item.position)
+        var alinhada := true
+        for indice in range(colisao.size()):
+            var aresta := colisao[(indice + 1) % colisao.size()] - colisao[indice]
+            alinhada = alinhada and is_equal_approx(absf(aresta.x),2.0 * absf(aresta.y))
+        check(alinhada,"Colisao do balcao acompanha grid 2:1 em %d" % angle)
+        check(item.poligono_colisao(Vector2.ZERO) == PackedVector2Array([
+            Vector2(0,-64),Vector2(64,-32),Vector2.ZERO,Vector2(-64,-32)
+        ]),"Base do balcao preservada em %d" % angle)
+        check(game._can_place(item),"Balcao cabe no piso em %d" % angle)
+        var colisao_caminhada: PackedVector2Array = item.poligono_colisao(item.position,8)
+        check(Geometry2D.is_point_in_polygon(item.position - Vector2(0,32),colisao_caminhada),
+            "Colisao inclui a base em %d" % angle)
+        check(not Geometry2D.is_point_in_polygon(item.position - Vector2(0,95),colisao_caminhada),
+            "Colisao nao ocupa piso atras da base em %d" % angle)
         game._edit_action("Girar")
     check(textures[0] != textures[1] and textures[1] != textures[2] and textures[2] != textures[3],"Quatro texturas distintas")
     game._edit_action("Girar")
@@ -238,6 +254,23 @@ func _run() -> void:
     print("RESULT: %d passed, %d failed" % [passed,failed])
     quit(1 if failed else 0)
 
+func _test_projecao_colisao() -> void:
+    for caso in [
+        {"id":"balcao_pc_store","base":Vector2(128,64),"giro":Vector2(128,64)},
+        {"id":"balcao_atendimento","base":Vector2(170,70),"giro":Vector2(140,85)},
+        {"id":"balcao_simples","base":Vector2(96,45),"giro":Vector2(45,96)}
+    ]:
+        var movel := GAME.MOVEL.new()
+        movel.item_id = caso["id"]
+        var base_confirmada := movel.poligono_colisao(Vector2.ZERO,8)
+        for indice in range(4):
+            movel.orientacao = indice
+            var esperado: Vector2 = caso["base"] if indice % 2 == 0 else caso["giro"]
+            check(movel.dimensoes_colisao() == esperado,"Projecao de colisao %s/%d" % [caso["id"],indice * 90])
+            check(movel.poligono_colisao(Vector2.ZERO,8,true) == base_confirmada,
+                "Colisao confirmada ignora previa %s/%d" % [caso["id"],indice * 90])
+        movel.free()
+
 func _test_modular() -> void:
     check(game.sala.get_child_count() == 43,"Sala construida de 30 pisos, 11 paredes, canto e soleira")
     var dados := game.cadastro.duplicate(true)
@@ -264,7 +297,7 @@ func _test_modular() -> void:
         check(game._can_place(item),"Movel inicial em posicao valida: " + item.item_id)
         check(not item.girar() and item.orientacao == 0,"Giro indisponivel nao inventa textura: " + item.item_id)
     game._populate_shop()
-    check(game.shop_list.get_child_count() == 12,"Todos os 12 moveis no catalogo da loja")
+    check(game.shop_list.get_child_count() == 15,"Catalogo oferece 14 moveis/portas/divisorias e acesso a ampliacao")
     check(game.shop_list.get_children().any(func(node: Node) -> bool: return node is Button and "Balcao PC Store" in node.text),"Balcao PC Store aparece na loja")
     game.cam.force_update_scroll()
     var bounds: Rect2 = game.sala.limites()
@@ -288,7 +321,12 @@ func _test_modular() -> void:
     game._cancel_edit()
     game._menu("Loja")
     await process_frame
-    var buy_button := game.shop_list.get_child(0) as Button
+    var buy_button: Button
+    for node in game.shop_list.get_children():
+        if node is Button and node.text.begins_with("Balcao de atendimento"):
+            buy_button = node
+            break
+    check(buy_button != null,"Botao do balcao encontrado pelo item, nao pelo indice")
     var click := InputEventMouseButton.new()
     click.button_index = MOUSE_BUTTON_LEFT
     click.position = Vector2(game.popup.position) + buy_button.get_global_rect().get_center()
@@ -381,7 +419,11 @@ func _test_bairro() -> void:
         var old_position := game.pos_player
         game.pos_player = entrada.posicao
         game._interact()
-        check(not game.indoors and game.info.text.contains(entrada.nome),"Loja informa interior indisponivel: " + entrada.nome)
+        if entrada.nome == "Salas comerciais":
+            check(not game.indoors and game.popup.visible and game.popup.title.contains("Imoveis"),"Salas comerciais oferecem compra do interior")
+            game.popup.hide()
+        else:
+            check(not game.indoors and game.info.text.contains(entrada.nome),"Loja informa interior indisponivel: " + entrada.nome)
         game.pos_player = old_position
         var grupo: Node2D = vizinhanca.fachadas[i]
         for parte: Sprite2D in grupo.get_children():
