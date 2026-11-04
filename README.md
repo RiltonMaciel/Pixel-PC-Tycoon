@@ -3,6 +3,24 @@
 Prototipo Android em Godot **4.4.1 Standard**, GDScript e pixel art.
 Resolucao de referencia: 432 x 768, retrato. Nao usa .NET nem HTML.
 
+## Circulacao: primeiro incremento de IA
+
+Depois da entrega visual, o mundo passou a escalonar nascimentos: pedestres
+com pelo menos 44 pixels e veiculos com 270 pixels entre centros no portal.
+Se uma entrada estiver ocupada, tenta outra rota sem criar atores empilhados.
+Carros limitam o avanco pelo veiculo a frente e cedem passagem a pedestres
+na pista. Rotas derivadas reservam uma carroceria de 290x90 pixels, evitando
+passar rente a carros estacionados quando apenas o centro estava livre.
+
+Validacao da circulacao: **85 verificacoes** em `test_world.gd`, incluindo
+100 segundos de espacamento medido, fluxo continuo, frenagem/retomada e margem
+da carroceria. O incremento **nao e avoidance completo**: pedestres em rotas
+opostas, filas internas e funcionarios ainda precisam do proximo trabalho.
+Nenhuma alteracao em economia, persistencia ou quantidade-alvo de visitantes.
+Menor lotacao inicial e intencional: o fluxo entra conforme ha espaco.
+Conjunto integrado: **3187 verificacoes headless, 87 renderizadas e 12 testes
+de imagens**, sem falhas; sem APK ou alteracao dos 142 PNGs originais.
+
 ## Previa visual do bairro (pendente de aprovacao)
 
 Em `Financas > Previa visual do bairro: ativar`, compare o visual original com:
@@ -20,7 +38,7 @@ pode ser revertida no mesmo botao e nao reescreve saves. Os 142 PNGs aprovados
 foram preservados. Recursos novos em [PreviaVisual](Assets/Cenarios/PreviaVisual/);
 geracao reproduzivel: `python tools/create_visual_preview.py` (Pillow).
 
-Validacao desta entrega: nove suites, **3175 verificacoes headless**; teste
+Validacao da entrega visual inicial (#14): nove suites, **3175 verificacoes headless**; teste
 da previa renderizada com **87 verificacoes** e duas capturas; **12 testes
 de imagens**, sem falhas. Nao foi gerado APK. A aprovacao estetica continua
 humana; testes de pixels/projecao nao comprovam qualidade artistica.

@@ -6,9 +6,12 @@
    vistas cada, um mercado e acabamento do passeio. Aprovar/refinar o resultado
    antes de substituir originais e ampliar outras fachadas. Commit/PR separado,
    sem merge automatico. Amostras procedurais nao equivalem a arte final.
-2. **IA e circulacao:** espacamento entre atores, filas, funcionarios e
-   veiculos; validar ausencia de sobreposicao/bloqueio sem reduzir o jogo a
-   atores imoveis ou alterar silenciosamente a demanda.
+2. **IA e circulacao (iniciada):** primeiro incremento com nascimentos
+   escalonados, veiculos mantendo distancia/cedendo passagem e margem para
+   carroceria nas rotas derivadas. Teste de fluxo e espacamento por 100 segundos,
+   85 verificacoes na suite de mundo. Ainda faltam avoidance de pedestres
+   em sentidos opostos, filas internas e funcionarios, sem congelar atores
+   nem alterar silenciosamente a demanda.
 3. **Construcao e arte:** paredes/acabamentos, 33 vistas, portas e gabinete
    definitivos, com aprovacao visual e preservacao dos recursos existentes.
 4. **Campanhas variadas:** estrategias de demanda, salarios, divida e expansao,
@@ -26,7 +29,8 @@
 12. **Audio:** musica/ambiencia/passos/ferramentas e feedback.
 13. **Progressao adicional:** objetivos, contratos maiores e mais geracoes.
 
-Os itens 2-13 nao sao declarados concluidos por esta entrega visual.
+O item 2 foi iniciado em entrega separada dependente da visual; nao esta
+concluido integralmente. Os itens 3-13 permanecem planejados.
 Integracao da previa testada em nove suites (3.175 verificacoes headless),
 87 verificacoes renderizadas e 12 testes de imagens. Android continua pendente.
 
