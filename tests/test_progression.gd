@@ -265,6 +265,11 @@ func _test_montagem() -> void:
     var destino := game.shop_list.find_child("Encaixe_gabinete",true,false) as Button
     check(origem != null and destino != null,"Peca em estoque e encaixe manual aparecem na bancada")
     if origem != null and destino != null:
+        var lista := game.shop_list.get_parent() as ScrollContainer
+        lista.ensure_control_visible(destino.get_parent() as Control)
+        await process_frame
+        await process_frame
+        check(lista.get_global_rect().has_point(origem.get_global_rect().get_center()) and lista.get_global_rect().has_point(destino.get_global_rect().get_center()),"Origem e destino visiveis antes do arraste real")
         var de := origem.get_global_rect().get_center() + Vector2(game.popup.position)
         var ate := destino.get_global_rect().get_center() + Vector2(game.popup.position)
         var toque := InputEventMouseButton.new()

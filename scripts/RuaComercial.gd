@@ -20,6 +20,10 @@ const EQUIPE = preload("res://scripts/Equipe.gd")
 const AMBIENTE = preload("res://scripts/Ambiente.gd")
 const CAMPANHA = preload("res://scripts/Campanha.gd")
 const CAMERA_GESTOS = preload("res://scripts/CameraGestos.gd")
+const EVOLUCAO = preload("res://scripts/Evolucao.gd")
+const REFORMA = preload("res://scripts/Reforma.gd")
+const INTERFACE = preload("res://scripts/InterfaceJogo.gd")
+const MUNDO_VIVO = preload("res://scripts/MundoVivo.gd")
 const LOJA_ID := "pc_store_001"
 
 var cadastro: Dictionary = CATALOGO.buscar(LOJA_ID)
@@ -81,6 +85,10 @@ var iluminacao: CanvasModulate
 var ambiente: AMBIENTE
 var gestos: CAMERA_GESTOS = CAMERA_GESTOS.new()
 var porta_botao: Button
+var evolucao: Dictionary = EVOLUCAO.inicial()
+var acabamentos: Dictionary = {}
+var app_pausado := false
+var mundo_vivo: MUNDO_VIVO
 
 func _ready() -> void:
     RenderingServer.set_default_clear_color(Color("#192331"))
@@ -132,6 +140,11 @@ func _ready() -> void:
         _refresh()
         return
     _load()
+    mundo_vivo = MUNDO_VIVO.new()
+    add_child(mundo_vivo)
+    if not mundo_vivo.configurar(bairro):
+        info.text = "ERRO: nao foi possivel configurar a circulacao do bairro."
+    mundo_vivo.pedestre_chegou_loja.connect(_cliente_da_rua)
     _refresh()
 
 func _personagem(id: String, at: Vector2) -> PERSONAGEM:
@@ -163,6 +176,10 @@ func _walkable(at: Vector2) -> bool:
     return true
 
 func _physics_process(delta: float) -> void:
+    if app_pausado:
+        return
+    mundo_vivo.definir_suspensao(indoors or transitioning,selecionado != null,save_bloqueado)
+    mundo_vivo.avancar(delta,float(relogio.estado["segundos"]),AMBIENTE.previsao(int(relogio.estado["dia"])))
     var bloqueado := transitioning or popup.visible or save_bloqueado or (selecionado != null and selecionado.em_edicao)
     var direction := Vector2.ZERO if bloqueado else (move + Input.get_vector("ui_left","ui_right","ui_up","ui_down")).limit_length(1)
     var distance := direction * 205.0 * delta
@@ -284,22 +301,26 @@ func _hud() -> void:
 
 func _layout() -> void:
     var size := get_viewport_rect().size
+    var area := Rect2(Vector2.ZERO,size)
+    if OS.get_name() == "Android":
+        area = INTERFACE.area_util(size,Vector2(DisplayServer.screen_get_size()),Rect2(DisplayServer.get_display_safe_area()))
     var header := layer.get_node("Header") as Control
-    header.position = Vector2(6,6)
-    header.size = Vector2(size.x - 12,82)
+    header.position = area.position + Vector2(6,6)
+    header.size = Vector2(area.size.x - 12,82)
+    info.custom_minimum_size.x = maxf(0,area.size.x-24)
     var menu := layer.get_node("Menu") as Control
-    menu.position = Vector2(6,size.y - 66)
-    menu.size = Vector2(size.x - 12,58)
+    menu.position = area.position + Vector2(6,area.size.y - 66)
+    menu.size = Vector2(area.size.x - 12,58)
     var pad := layer.get_node("Pad") as Control
-    pad.position = Vector2(18,size.y - 187)
+    pad.position = area.position + Vector2(18,area.size.y - 187)
     pad.size = Vector2(108,108)
     (pad.get_node("Arrows") as Control).size = pad.size
     pad_center = pad.position + pad.size * 0.5
     var action := layer.get_node("Action") as Control
-    action.position = Vector2(size.x - 104,size.y - 166)
+    action.position = area.position + Vector2(area.size.x - 104,area.size.y - 166)
     action.size = Vector2(75,75)
-    edit_bar.position = Vector2(6,100)
-    edit_bar.size = Vector2(size.x - 12,48)
+    edit_bar.position = area.position + Vector2(6,100)
+    edit_bar.size = Vector2(area.size.x - 12,48)
     fade.size = size
     if indoors:
         _camera_interior()
@@ -794,6 +815,8 @@ func _trocar_slot(slot: int) -> void:
     relogio.carregar(dados.get("calendario",CALENDARIO.inicial(loja.resumo())))
     _carregar_clientes(dados)
     equipe.carregar(dados.get("equipe",EQUIPE.inicial()))
+    evolucao = dados.get("evolucao",EVOLUCAO.inicial()).duplicate(true)
+    player.personalizar(int(evolucao["aparencia"]))
     relogio_bloqueado = false
     cliente_fase_visual = ""
     cliente_rota.clear()
@@ -853,20 +876,30 @@ func _menu(label: String) -> void:
 func _save() -> bool:
     if save_bloqueado:
         return false
+    if not EVOLUCAO.validar(evolucao):
+        info.text = "ERRO: objetivos/tutorial/aparencia invalidos; progresso preservado."
+        return false
     if indoors:
         var itens: Array[Dictionary] = []
         for movel in moveis:
             if movel == selecionado and comprando:
                 continue
             itens.append(movel.serializar())
-        gestor_imoveis.salvar_estado(unidade_id,{"moveis":itens,"guardados":guardados,"nivel":cadastro["nivel"]})
+        gestor_imoveis.salvar_estado(unidade_id,{"moveis":itens,"guardados":guardados,"nivel":cadastro["nivel"],"acabamentos":acabamentos.duplicate(true)})
     gestor_imoveis.unidade_id = unidade_id
     loja.estado["campanha"]["nivel"] = _nivel_campanha()
     gestor_imoveis.comercio = loja.estado.duplicate(true)
     gestor_imoveis.calendario = relogio.estado.duplicate(true)
     gestor_imoveis.clientes = clientes.estado.duplicate(true)
     gestor_imoveis.equipe = equipe.estado.duplicate(true)
+    var evolucao_anterior := evolucao.duplicate(true)
+    var objetivos := EVOLUCAO.OBJETIVOS.new()
+    objetivos.carregar(evolucao["objetivos"])
+    objetivos.atualizar(loja.estado,clientes.estado,equipe.estado,int(relogio.estado["dia"]))
+    evolucao["objetivos"] = objetivos.estado.duplicate(true)
+    gestor_imoveis.evolucao = evolucao.duplicate(true)
     if not gestor_imoveis.gravar(money,save_path):
+        evolucao = evolucao_anterior
         info.text = "ERRO: progresso nao salvo. " + gestor_imoveis.ultimo_erro
         return false
     return true
@@ -878,6 +911,8 @@ func _load() -> void:
         info.text = "ERRO NO SAVE: arquivo preservado. " + gestor_imoveis.ultimo_erro
         return
     money = int(dados["dinheiro"])
+    evolucao = dados.get("evolucao",EVOLUCAO.inicial()).duplicate(true)
+    player.personalizar(int(evolucao["aparencia"]))
     _definir_unidade(gestor_imoveis.unidade_id)
     if not loja.carregar(dados.get("comercio",COMERCIO.inicial())):
         save_bloqueado = true
@@ -1010,9 +1045,9 @@ func _abrir_cliente() -> void:
         for id in JOGOS.JOGOS:
             var jogo: Dictionary = JOGOS.JOGOS[id]
             var botao := _button("%s | PC R$ %d | N%d" % [jogo["nome"],jogo["orcamento"],CAMPANHA.nivel_jogo(id)],_operacao_comercial.bind("pedido_pc",id),shop_list)
-            botao.disabled = not CAMPANHA.jogo_liberado(id,loja.estado["campanha"],_nivel_campanha())
+            botao.disabled = not CAMPANHA.jogo_liberado(id,loja.estado["campanha"],_nivel_campanha(),int(relogio.estado["dia"]))
     else:
-        var pedido := "PC: " + str(JOGOS.buscar(loja.estado["montagem"].get("jogo",""))["nome"]) if cliente["tipo"] == "pc" else str(loja.SERVICOS.ITENS[cliente["produto"]]["nome"]) if cliente["tipo"] == "servico" else str(PECAS.PECAS[cliente["produto"]]["nome"])
+        var pedido := "PC: " + str(JOGOS.buscar(loja.estado["montagem"].get("jogo",""))["nome"]) if cliente["tipo"] == "pc" else loja.SERVICOS.nome(loja.estado["servico"]) if cliente["tipo"] == "servico" else str(PECAS.PECAS[cliente["produto"]]["nome"])
         _texto_painel("Cliente #%d | %s\nPedido: %s" % [int(cliente["id"]),cliente["fase"],pedido])
         _button("Entregar PC e receber" if cliente["tipo"] == "pc" else "Vender e receber",_operacao_comercial.bind("vender"),shop_list)
     popup.popup_centered(Vector2i(370,420))
@@ -1067,6 +1102,7 @@ func _abrir_montagem() -> void:
         _button("1. Conectar cabos" + (" - OK" if montagem["conectado"] else ""),_operacao_comercial.bind("conectar"),shop_list)
         _button("2. Testar boot, temperatura, estabilidade e jogo",_operacao_comercial.bind("testar"),shop_list)
         _button("3. Voltar ao atendimento",_abrir_cliente,shop_list)
+        _button("Ver gabinete esquematico",_abrir_gabinete,shop_list)
         _button("Cancelar pedido e devolver pecas",_operacao_comercial.bind("cancelar_pc"),shop_list)
     popup.popup_centered(Vector2i(390,540))
 
@@ -1077,10 +1113,10 @@ func _operacao_comercial(acao: String, id: String = "", categoria: String = "", 
     var automatico := not funcionario.is_empty()
     if not automatico and not _comercio_disponivel():
         return false
-    if acao == "comprar" and not _compra_liberada(id) or acao == "pedido_pc" and not CAMPANHA.jogo_liberado(id,loja.estado["campanha"],_nivel_campanha()):
+    if acao == "comprar" and not _compra_liberada(id) or acao == "pedido_pc" and not CAMPANHA.jogo_liberado(id,loja.estado["campanha"],_nivel_campanha(),int(relogio.estado["dia"])):
         info.text = "Tecnologia ainda bloqueada ou fornecedor inadequado; consulte Estoque."
         return false
-    var tipo := "bancada" if acao in ["instalar","remover","conectar","testar","cancelar_pc","diagnosticar_os","executar_os","testar_os","retomar_os"] else "notebook" if acao in ["comprar","receber","fornecedor"] else "balcao"
+    var tipo := "bancada" if acao in ["instalar","remover","conectar","testar","cancelar_pc","diagnosticar_os","investigar_os","executar_os","testar_os","retomar_os"] else "notebook" if acao in ["comprar","receber","fornecedor"] else "balcao"
     if automatico and not _funcionario_autorizado(funcionario,acao,tipo):
         info.text = "Funcionario sem atribuicao ou posto disponivel para esta tarefa."
         return false
@@ -1130,7 +1166,9 @@ func _operacao_comercial(acao: String, id: String = "", categoria: String = "", 
         "cancelar_pc":
             ok = loja.cancelar_montagem()
         "abrir_os":
-            ok = loja.abrir_os(id)
+            ok = loja.abrir_os(id,categoria)
+        "investigar_os":
+            ok = loja.investigar_os(id)
         "diagnosticar_os":
             ok = loja.diagnosticar_os()
         "aprovar_os":
@@ -1167,6 +1205,8 @@ func _operacao_comercial(acao: String, id: String = "", categoria: String = "", 
         elif acao == "abrir_os":
             clientes.vincular_servico(int(loja.estado["servico"]["preco"]))
             clientes.estado["perfis"][clientes.estado["atual"]]["servico"] = id
+            if not categoria.is_empty():
+                clientes.estado["perfis"][clientes.estado["atual"]]["caso"] = categoria
         elif acao == "guardar_os":
             clientes.estado["atual"] = ""
         elif acao == "retomar_os":
@@ -1216,6 +1256,7 @@ func _reabrir_comercio() -> void:
         "Estoque": _abrir_estoque()
         "Cliente": _abrir_cliente()
         "Montagem": _abrir_montagem()
+        "Gabinete": _abrir_gabinete()
         "Servicos": _abrir_servicos()
 
 func _preparar_cliente() -> void:
@@ -1226,6 +1267,7 @@ func _preparar_cliente() -> void:
     customer.visible = not indoors or not cliente.is_empty()
     if not indoors or cliente.is_empty():
         return
+    customer.personalizar(int(clientes.estado["atual"].trim_prefix("cliente_")) % 9)
     var balcao := _estacao("balcao")
     if balcao == null:
         info.text = "Cliente aguardando: recoloque um balcao acessivel."
@@ -1378,10 +1420,12 @@ func _atender_fila() -> void:
         var disponivel := not oferta.is_empty()
         if perfil["preferencia"] == "pc":
             var jogo: String = perfil.get("jogo","")
-            disponivel = _estacao("bancada") != null and loja.total_os() < COMERCIO.MAX_OS and CAMPANHA.jogo_liberado(jogo,loja.estado["campanha"],_nivel_campanha()) and int(perfil["orcamento"]) >= int(JOGOS.buscar(jogo)["orcamento"])
+            disponivel = _estacao("bancada") != null and loja.total_os() < COMERCIO.MAX_OS and CAMPANHA.jogo_liberado(jogo,loja.estado["campanha"],_nivel_campanha(),int(relogio.estado["dia"])) and int(perfil["orcamento"]) >= int(JOGOS.buscar(jogo)["orcamento"])
         elif perfil["preferencia"] == "servico":
             var servico: String = perfil.get("servico","diagnostico")
-            disponivel = _estacao("bancada") != null and loja.total_os() < COMERCIO.MAX_OS and int(perfil["orcamento"]) >= int(loja.SERVICOS.ITENS[servico]["preco"])
+            var caso: String = perfil.get("caso","")
+            var preco: int = loja.SERVICOS.CASOS[caso]["preco"] if not caso.is_empty() else loja.SERVICOS.ITENS[servico]["preco"]
+            disponivel = _estacao("bancada") != null and loja.total_os() < COMERCIO.MAX_OS and int(perfil["orcamento"]) >= preco
         if disponivel:
             id = candidato
             produto = oferta
@@ -1397,7 +1441,7 @@ func _atender_fila() -> void:
         ok = loja.criar_cliente("",true,jogo)
     elif perfil["preferencia"] == "servico":
         var servico: String = perfil.get("servico","diagnostico")
-        ok = loja.abrir_os(servico)
+        ok = loja.abrir_os(servico,perfil.get("caso",""))
     else:
         ok = loja.criar_cliente(produto)
     if not ok or not clientes.ativar(id) or not _save():
@@ -1420,6 +1464,7 @@ func _atualizar_fila_visual() -> void:
         var at := rota[mini(rota.size()-1,i*3 + 2)]
         var pessoa := _personagem("cliente_estudante",at)
         pessoa.name = clientes.estado["fila"][i]
+        pessoa.personalizar(int(pessoa.name.trim_prefix("cliente_")) % 9)
         fila_visuais.append(pessoa)
 
 func _abrir_historico_clientes() -> void:
@@ -1442,7 +1487,7 @@ func _abrir_servicos() -> void:
     _texto_painel("Oficina %d/%d | Pecas reservadas ficam fora do estoque vendavel.\nPrioridade: urgente, normal, baixa; desempate por chegada." % [loja.total_os(),COMERCIO.MAX_OS])
     for pacote: Dictionary in loja.estado["fila_os"]:
         var ordem: Dictionary = pacote["os"]
-        _texto_painel("PC/OS #%d | %s | %s | Reservas %s" % [ordem["id"],loja.SERVICOS.ITENS[ordem["tipo"]]["nome"],["Urgente","Normal","Baixa"][int(ordem["prioridade"])],str(ordem["reservas"])])
+        _texto_painel("PC/OS #%d | %s | %s | Reservas %s" % [ordem["id"],loja.SERVICOS.nome(ordem),["Urgente","Normal","Baixa"][int(ordem["prioridade"])],str(ordem["reservas"])])
         _button("Retomar OS #%d na bancada" % ordem["id"],_operacao_comercial.bind("retomar_os",str(int(ordem["id"]))),shop_list)
         for prioridade in range(3):
             _button("OS #%d: %s" % [ordem["id"],["Urgente","Normal","Baixa"][prioridade]],_operacao_comercial.bind("priorizar_os",str(int(ordem["id"])),str(prioridade)),shop_list)
@@ -1452,12 +1497,19 @@ func _abrir_servicos() -> void:
             var dados: Dictionary = loja.SERVICOS.ITENS[id]
             var botao := _button("%s | Orcamento R$ %d" % [dados["nome"],dados["preco"]],_operacao_comercial.bind("abrir_os",id),shop_list)
             botao.disabled = loja.total_os() >= COMERCIO.MAX_OS or not loja.estado["cliente"].is_empty()
+        for caso in loja.SERVICOS.CASOS:
+            var botao := _button("Investigar: %s | R$ %d" % [loja.SERVICOS.CASOS[caso]["nome"],loja.SERVICOS.CASOS[caso]["preco"]],_operacao_comercial.bind("abrir_os","reparo",caso),shop_list)
+            botao.disabled = loja.total_os() >= COMERCIO.MAX_OS or not loja.estado["cliente"].is_empty()
         _texto_painel("OS entregues: %d. Configuracao e componentes devolvidos ficam registrados." % loja.estado["ordens_servico"].size())
     else:
-        _texto_painel("OS #%d | %s\n%s | Orcamento R$ %d | Custo R$ %d\n%s" % [os_dados["id"],os_dados["fase"],loja.SERVICOS.ITENS[os_dados["tipo"]]["nome"],os_dados["preco"],os_dados["custo"],os_dados["relatorio"]])
+        _texto_painel("OS #%d | %s\n%s | Orcamento R$ %d | Custo R$ %d\n%s" % [os_dados["id"],os_dados["fase"],loja.SERVICOS.nome(os_dados),os_dados["preco"],os_dados["custo"],os_dados["relatorio"]])
         _texto_painel("Apos aprovar, a paciencia fica pausada durante a execucao e retirada. Pecas antigas sao devolvidas ao cliente, nao ao estoque da loja.")
-        for id in loja.SERVICOS.ITENS[os_dados["tipo"]]["necessarios"]:
+        for id in loja.SERVICOS.necessarios(os_dados):
             _texto_painel("Necessario: %s | Estoque %d" % [PECAS.PECAS[id]["nome"],loja.quantidade(id)])
+        if os_dados.has("caso") and os_dados["fase"] == "recepcao":
+            _texto_painel("Sintoma: " + loja.SERVICOS.CASOS[os_dados["caso"]]["nome"] + ". Realize o ensaio correspondente; metricas sao simuladas.")
+            for ensaio in loja.SERVICOS.ENSAIOS:
+                _button("Ensaio: " + ensaio,_operacao_comercial.bind("investigar_os",ensaio),shop_list)
         match os_dados["fase"]:
             "recepcao": _button("Diagnosticar na bancada",_operacao_comercial.bind("diagnosticar_os"),shop_list)
             "orcamento": _button("Aprovar com o cliente no balcao",_operacao_comercial.bind("aprovar_os"),shop_list)
@@ -1471,7 +1523,7 @@ func _abrir_servicos() -> void:
     popup.popup_centered(Vector2i(390,500))
 
 func _tempo_pausado() -> bool:
-    return relogio_bloqueado or (selecionado != null and selecionado.em_edicao)
+    return app_pausado or relogio_bloqueado or (selecionado != null and selecionado.em_edicao)
 
 func _avancar_simulacao(delta: float) -> bool:
     if _tempo_pausado():
@@ -1518,6 +1570,7 @@ func _abrir_financas() -> void:
     var meta := CAMPANHA.meta_diaria(salarios)
     _texto_painel("Plano de campanha: PC inicial custa %d e rende margem %d.\nDespesas/dia com equipe atual: %d. Equilibrio: %d PC(s).\nMeta: 2 PCs/dia; lucro previsto %d/dia.\nReserve %d para pecas e contas antes de expandir.\nProjecao, nao renda garantida; demanda/estoque dependem do jogador." % [meta["custo_pc"],meta["margem_pc"],meta["despesas"],meta["equilibrio"],meta["lucro_meta"],meta["reserva"]])
     _button("Funcionarios: contratar e atribuir tarefas",_abrir_equipe,shop_list)
+    _button("Guia, objetivos, aparencia e acabamentos",_abrir_progresso,shop_list)
     _button("Imoveis, ampliacao e ambiente",_abrir_imovel,shop_list)
     _button("Recentralizar camera (arraste/pinca/roda)",_recentralizar_camera,shop_list)
     if relogio_bloqueado:
@@ -1561,7 +1614,7 @@ func _funcionario_autorizado(id: String, acao: String, posto: String) -> bool:
     if not equipe.ativo(id) or transitioning or save_bloqueado or _tempo_pausado() or selecionado != null:
         return false
     var funcao: String = equipe.estado["contratos"][id]["funcao"]
-    var acoes := {"caixa":["vender","aprovar_os"],"tecnico":["diagnosticar_os","executar_os","testar_os","retomar_os"],"estoque":["receber"],"montador":["instalar","conectar","testar"]}
+    var acoes := {"caixa":["vender","aprovar_os"],"tecnico":["diagnosticar_os","investigar_os","executar_os","testar_os","retomar_os"],"estoque":["receber"],"montador":["instalar","conectar","testar"]}
     if not acao in acoes[funcao] or EQUIPE.POSTOS[funcao] != posto or not _posto_existe(posto):
         return false
     if not indoors:
@@ -1625,7 +1678,9 @@ func _alterar_equipe(acao: String, id: String, funcao: String) -> bool:
     return true
 
 func _atualizar_funcionarios() -> void:
+    var anteriores: Dictionary = {}
     for visual in equipe_visuais:
+        anteriores[visual.get_meta("funcionario")] = visual.position
         visual.queue_free()
     equipe_visuais.clear()
     if not indoors:
@@ -1663,6 +1718,13 @@ func _atualizar_funcionarios() -> void:
             equipe.registrar(id,"Sem espaco livre para ocupar o posto",false)
             continue
         var visual := _personagem("tecnico",posicao)
+        visual.personalizar(EQUIPE.CANDIDATOS.keys().find(id) % 8 + 1)
+        var inicio: Vector2 = anteriores.get(id,cadastro["entrada_interna"] + Vector2(-30*(equipe_visuais.size()+1),0))
+        if _walkable(inicio):
+            var caminho := _navegacao(null,inicio).caminho_ate(posicao)
+            if not caminho.is_empty():
+                visual.position = inicio
+                visual.set_meta("rota_posto",caminho)
         visual.set_meta("funcionario",id)
         var nome := Label.new()
         nome.text = EQUIPE.CANDIDATOS[id]["nome"]
@@ -1673,6 +1735,19 @@ func _atualizar_funcionarios() -> void:
 func _processar_funcionarios(delta: float) -> void:
     if _tempo_pausado() or transitioning or save_bloqueado or selecionado != null:
         return
+    for visual in equipe_visuais:
+        var rota: PackedVector2Array = visual.get_meta("rota_posto",PackedVector2Array())
+        var restante := 72.0 * delta
+        var anterior := visual.position
+        while not rota.is_empty() and restante > 0:
+            var distancia := visual.position.distance_to(rota[0])
+            var passo := minf(restante,distancia)
+            visual.position = visual.position.move_toward(rota[0],passo)
+            restante -= passo
+            if distancia <= passo:
+                rota.remove_at(0)
+        visual.set_meta("rota_posto",rota)
+        visual.atualizar(visual.position-anterior,delta)
     var cliente: Dictionary = loja.estado["cliente"]
     if not indoors and not cliente.is_empty() and cliente["fase"] in ["entrando","saindo"] and _posto_existe("balcao"):
         cliente_tempo_oculto += delta
@@ -1716,21 +1791,27 @@ func _processar_funcionarios(delta: float) -> void:
                     acao = "vender"
             elif cliente["tipo"] == "peca" or loja.estado["montagem"].get("fase") == "testado":
                 acao = "vender"
-        elif funcao == "tecnico" and not (popup.visible and painel_atual in ["Montagem","Servicos"]):
+        elif funcao == "tecnico" and not (popup.visible and painel_atual in ["Montagem","Servicos","Gabinete"]):
             if cliente.is_empty() and loja.proxima_os() > 0:
                 acao = "retomar_os"
                 argumento = str(loja.proxima_os())
             match os_dados.get("fase",""):
-                "recepcao": acao = "diagnosticar_os"
+                "recepcao":
+                    acao = "diagnosticar_os"
+                    if os_dados.has("caso"):
+                        var ensaio: String = loja.SERVICOS.CASOS[os_dados["caso"]]["ensaio"]
+                        if not ensaio in os_dados["ensaios"]:
+                            acao = "investigar_os"
+                            argumento = ensaio
                 "execucao":
                     var disponivel := true
-                    for insumo in loja.SERVICOS.ITENS[os_dados["tipo"]]["necessarios"]:
-                        if loja.quantidade(insumo) + int(os_dados.get("reservas",{}).get(insumo,0)) < int(loja.SERVICOS.ITENS[os_dados["tipo"]]["necessarios"][insumo]):
+                    for insumo in loja.SERVICOS.necessarios(os_dados):
+                        if loja.quantidade(insumo) + int(os_dados.get("reservas",{}).get(insumo,0)) < int(loja.SERVICOS.necessarios(os_dados)[insumo]):
                             disponivel = false
                     if disponivel:
                         acao = "executar_os"
                 "teste": acao = "testar_os"
-        elif funcao == "montador" and cliente.get("tipo") == "pc" and not (popup.visible and painel_atual in ["Montagem","Servicos"]):
+        elif funcao == "montador" and cliente.get("tipo") == "pc" and not (popup.visible and painel_atual in ["Montagem","Servicos","Gabinete"]):
             var montagem: Dictionary = loja.estado["montagem"]
             if montagem["fase"] == "montando":
                 var plano := loja.plano_automatico()
@@ -1797,12 +1878,14 @@ func _compra_liberada(id: String) -> bool:
     var campanha: Dictionary = loja.estado["campanha"]
     if id in campanha["pecas_legadas"]:
         return true
-    return CAMPANHA.peca_liberada(id,campanha,_nivel_campanha()) and int(CAMPANHA.FORNECEDORES[campanha["fornecedor"]]["nivel"]) >= CAMPANHA.nivel_peca(id)
+    return CAMPANHA.peca_liberada(id,campanha,_nivel_campanha(),int(relogio.estado["dia"])) and int(CAMPANHA.FORNECEDORES[campanha["fornecedor"]]["nivel"]) >= CAMPANHA.nivel_peca(id)
 
 func _definir_unidade(id: String) -> void:
     unidade_id = id
     gestor_imoveis.unidade_id = id
     cadastro = CATALOGO.buscar(id,int(gestor_imoveis.estados.get(id,{}).get("nivel",0)))
+    acabamentos = gestor_imoveis.estados.get(id,{}).get("acabamentos",{}).duplicate(true)
+    sala.acabamentos = acabamentos.duplicate(true)
     sala.configurar(cadastro)
     exit_marker.position = Vector2(cadastro["saida_interna"]) + Vector2(-32,0)
 
@@ -1896,7 +1979,166 @@ func _comprar_imovel() -> bool:
     return true
 
 func _notification(what: int) -> void:
+    if what == NOTIFICATION_APPLICATION_RESUMED:
+        app_pausado = false
+    if what == NOTIFICATION_APPLICATION_PAUSED:
+        app_pausado = true
     if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
         _stop_input()
         if is_node_ready():
             _save()
+
+func _cliente_da_rua(_pedestre: int, id_loja: String, _ponto: Vector2) -> void:
+    if save_bloqueado or transitioning or _tempo_pausado() or id_loja != unidade_id or clientes.estado["fila"].size() >= 4:
+        return
+    var anterior := clientes.estado.duplicate(true)
+    var visitante := clientes.retornar(int(relogio.estado["dia"]))
+    if visitante.is_empty():
+        for id in loja.estado["estoque"]:
+            if loja.quantidade(id) > 0:
+                visitante = clientes.adicionar(PECAS.PECAS[id]["categoria"],int(PECAS.PECAS[id]["venda"]),180.0 + int(clientes.estado["reputacao"])*0.6)
+                break
+    if not visitante.is_empty():
+        if not _save():
+            clientes.estado = anterior
+        else:
+            _atualizar_fila_visual()
+
+func _abrir_gabinete() -> void:
+    if not _comercio_disponivel() or not _perto_estacao("bancada"):
+        info.text = "Aproxime-se da bancada para visualizar o gabinete."
+        return
+    var montagem: Dictionary = loja.estado["montagem"]
+    if montagem.is_empty() or not montagem["fase"] in ["montando","testado"]:
+        info.text = "Sem PC em montagem."
+        return
+    _limpar_painel("Gabinete - esquema funcional")
+    painel_atual = "Gabinete"
+    _texto_painel("Esquema de encaixes, nao arte final. Arraste pecas aos encaixes ou instale pelo painel manual. As mesmas regras de compatibilidade e estoque se aplicam.")
+    var linha := HBoxContainer.new()
+    shop_list.add_child(linha)
+    var gabinete := preload("res://scripts/GabineteVisual.gd").new()
+    gabinete.configurar(montagem,_instalar_peca)
+    linha.add_child(gabinete)
+    var scroll := ScrollContainer.new()
+    scroll.custom_minimum_size = Vector2(110,250)
+    scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    linha.add_child(scroll)
+    var estoque := VBoxContainer.new()
+    scroll.add_child(estoque)
+    for id in loja.estado["estoque"]:
+        if loja.quantidade(id) < 1 or not PECAS.PECAS[id]["categoria"] in PECAS.CATEGORIAS:
+            continue
+        var origem := CARTAO.new()
+        origem.name = "VisualPeca_" + id
+        origem.peca = id
+        origem.text = PECAS.PECAS[id]["categoria"] + " x%d" % loja.quantidade(id)
+        origem.tooltip_text = PECAS.PECAS[id]["nome"]
+        origem.add_theme_font_size_override("font_size",9)
+        origem.custom_minimum_size.y = 44
+        origem.pressed.connect(_instalar_peca.bind(id,PECAS.PECAS[id]["categoria"]))
+        estoque.add_child(origem)
+    _button("Conectar cabos",_operacao_comercial.bind("conectar"),shop_list)
+    _button("Testar PC",_operacao_comercial.bind("testar"),shop_list)
+    _button("Montagem manual detalhada",_abrir_montagem,shop_list)
+    popup.popup_centered(Vector2i(390,600))
+
+func _abrir_progresso() -> void:
+    if save_bloqueado or transitioning or selecionado != null:
+        info.text = "Conclua a edicao/transicao antes de abrir o guia."
+        return
+    _limpar_painel("Guia, objetivos e personalizacao")
+    var passo := int(evolucao["tutorial"])
+    _texto_painel("Tutorial opcional %d/6: %s" % [mini(passo+1,6),INTERFACE.PASSOS[passo] if passo < 6 else "Concluido. Continue jogando livremente."])
+    if passo < 6:
+        _button("Proxima orientacao",_preferencia.bind("tutorial",passo+1),shop_list)
+    _button("Rever guia",_preferencia.bind("tutorial",0),shop_list)
+    var objetivos := EVOLUCAO.OBJETIVOS.new()
+    objetivos.carregar(evolucao["objetivos"])
+    _texto_painel("Objetivos opcionais: sem bloqueio do jogo livre ou dinheiro artificial.")
+    for id in EVOLUCAO.OBJETIVOS.METAS:
+        _texto_painel("%s %s" % ["[OK]" if objetivos.concluido(id) else "[ ]",EVOLUCAO.OBJETIVOS.METAS[id]["nome"]])
+    _texto_painel("Lancamentos tecnologicos: precisam de data, nivel e fornecedor. Aquisicoes antigas continuam acessiveis.")
+    for dia in [8,14,21,28]:
+        var nomes: PackedStringArray = []
+        for id in CAMPANHA.lancamentos_no_dia(dia):
+            nomes.append(PECAS.PECAS[id]["nome"])
+        for id in JOGOS.JOGOS:
+            if int(JOGOS.JOGOS[id].get("lancamento",0)) == dia:
+                nomes.append(JOGOS.JOGOS[id]["nome"])
+        _texto_painel("Dia %d: %s" % [dia,", ".join(nomes)])
+    _texto_painel("Acessorios opcionais em camadas nativas; sprites aprovados intactos. Nao substituem arte modular final.")
+    for estilo in range(9):
+        _button("Sem acessorios" if estilo == 0 else "Acessorio %d" % estilo,_preferencia.bind("aparencia",estilo),shop_list)
+    if indoors:
+        _button("Editar piso e setores",_abrir_acabamentos,shop_list)
+    _texto_painel("Diagnostico local: %s | %.0f FPS | memoria estatica %.1f MB. Nao equivale a homologacao Android." % [OS.get_name(),Performance.get_monitor(Performance.TIME_FPS),Performance.get_monitor(Performance.MEMORY_STATIC)/1048576.0])
+    popup.popup_centered(Vector2i(390,540))
+
+func _preferencia(campo: String, valor: int) -> bool:
+    if save_bloqueado or transitioning or selecionado != null or not campo in ["tutorial","aparencia"]:
+        info.text = "Preferencia indisponivel ou desconhecida."
+        return false
+    var anterior := evolucao.duplicate(true)
+    evolucao[campo] = valor
+    if not EVOLUCAO.validar(evolucao) or not _save():
+        evolucao = anterior
+        info.text = "Nao foi possivel salvar a preferencia; estado anterior preservado."
+        return false
+    player.personalizar(int(evolucao["aparencia"]))
+    _abrir_progresso()
+    return true
+
+func _abrir_acabamentos() -> void:
+    if not indoors or selecionado != null or save_bloqueado:
+        info.text = "Entre na loja e conclua a edicao para reformar."
+        return
+    _limpar_painel("Pisos e setores")
+    _texto_painel("Coordenadas do piso: U/V. Trocar a variante de madeira custa R$ 20 por modulo; setor e gratuito. Sem alterar colisoes, moveis ou PNGs.")
+    var u := SpinBox.new()
+    u.min_value = 0
+    u.max_value = cadastro["modulos"].x-1
+    u.step = 1
+    shop_list.add_child(u)
+    var v := SpinBox.new()
+    v.min_value = 0
+    v.max_value = cadastro["modulos"].y-1
+    v.step = 1
+    shop_list.add_child(v)
+    var piso := OptionButton.new()
+    for nome in ["Madeira A","Madeira B","Madeira C"]:
+        piso.add_item(nome)
+    shop_list.add_child(piso)
+    var setor := OptionButton.new()
+    for nome in REFORMA.SETORES:
+        setor.add_item("Sem setor" if nome.is_empty() else nome)
+    shop_list.add_child(setor)
+    _button("Aplicar e salvar",func() -> void: _reformar(int(u.value),int(v.value),piso.selected,REFORMA.SETORES[setor.selected]),shop_list)
+    popup.popup_centered(Vector2i(390,460))
+
+func _reformar(u: int, v: int, piso: int, setor: String) -> bool:
+    if not indoors or selecionado != null or save_bloqueado or transitioning:
+        info.text = "Reforma indisponivel; conclua edicao/transicao."
+        return false
+    var candidato := acabamentos.duplicate(true)
+    candidato["%d,%d" % [u,v]] = {"piso":piso,"setor":setor}
+    if not REFORMA.validar(candidato,cadastro["modulos"]):
+        info.text = "Celula, piso ou setor invalido."
+        return false
+    var custo := 20 if REFORMA.celula(acabamentos,u,v)["piso"] != piso else 0
+    if money < custo:
+        info.text = "Caixa insuficiente para trocar o piso."
+        return false
+    var anterior := acabamentos.duplicate(true)
+    var estados := gestor_imoveis.estados.duplicate(true)
+    acabamentos = candidato
+    money -= custo
+    if not _save():
+        acabamentos = anterior
+        gestor_imoveis.estados = estados
+        money += custo
+        return false
+    sala.aplicar_acabamentos(acabamentos)
+    info.text = "Piso/setor salvo; custo R$ %d." % custo
+    _refresh()
+    return true

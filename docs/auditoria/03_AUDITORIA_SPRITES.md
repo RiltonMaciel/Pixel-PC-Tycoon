@@ -1,5 +1,26 @@
 # 03 - Auditoria de sprites e recursos visuais
 
+## Atualização vigente: recursos preservados e apresentação funcional
+
+Os **142 PNGs originais mantêm SHA-256 idêntico** ao inventário da auditoria.
+Não foram gerados/redesenhados móveis, fachadas, hardware ou personagens.
+
+- [Reforma](../../scripts/Reforma.gd) e [Interior](../../scripts/Imoveis/InteriorModular.gd):
+  edição individual reutiliza as três variantes aprovadas de piso; setores
+  são rótulos nativos, não novas texturas.
+- [Aparência](../../scripts/Aparencia.gd): chapéus/óculos opcionais em camadas
+  nativas com ajuste direcional. Não são um kit final modular de corpo/roupa/cabelo.
+- [Gabinete](../../scripts/GabineteVisual.gd): desenho esquemático nativo com
+  oito alvos reais de drag-and-drop. Funcional, mas não arte final do gabinete.
+- [Mundo vivo](../../scripts/MundoVivo.gd): pedestres e veículos usam recursos
+  existentes. As quatro vistas de veículos não são rotações artificiais.
+
+Continuam pendentes as **33 vistas de móveis**, portas definitivas e hardware/
+personagens modulares finais descritos em [ARTE_PENDENTE](../../ARTE_PENDENTE.md).
+Nenhum sprite aprovado foi substituído para mascarar essas ausências.
+Capturas desktop confirmaram gabinete, reparo, guia e bairro; não homologam Android.
+As seções seguintes são registros das entregas anteriores.
+
 ## Integração mais recente: porta interna e interface da oficina
 
 A porta interna reaproveita os mesmos painéis diagonais aprovados da divisória:

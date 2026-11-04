@@ -1,0 +1,35 @@
+name: Validar jogo sem gerar APK
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preparar Godot e testes de imagem
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check Pillow
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+      - name: Importar e executar suites
+        run: |
+          set -euo pipefail
+          GODOT=/tmp/godot/Godot_v4.4.1-stable_linux.x86_64
+          "$GODOT" --headless --path . --editor --import --quit > /tmp/import.log 2>&1 || { cat /tmp/import.log; exit 1; }
+          cat /tmp/import.log
+          if grep -Eqi '(SCRIPT ERROR|Parse Error|ERROR:)' /tmp/import.log; then exit 1; fi
+          python tests/test_assets.py
+          for suite in game save_recovery progression simulation campaign objectives world evolution; do
+            timeout 200 "$GODOT" --headless --path . --script "tests/test_$suite.gd" > "/tmp/test_$suite.log" 2>&1 || { cat "/tmp/test_$suite.log"; exit 1; }
+            cat "/tmp/test_$suite.log"
+            grep -Eq '^RESULT: [0-9]+ passed, 0 failed$' "/tmp/test_$suite.log"
+            if grep -Eqi '(SCRIPT ERROR|Parse Error|ERROR:)' "/tmp/test_$suite.log"; then exit 1; fi
+          done

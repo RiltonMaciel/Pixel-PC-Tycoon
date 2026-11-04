@@ -1,5 +1,27 @@
 # 02 - Gap analysis e matriz de rastreabilidade
 
+## Matriz vigente complementar: dez frentes autorizadas
+
+Estados referem-se ao escopo delimitado, com testes desktop nas suítes
+[evolution](../../tests/test_evolution.gd), [objectives](../../tests/test_objectives.gd)
+e [world](../../tests/test_world.gd). As matrizes anteriores permanecem históricas.
+
+| ID | Funcionalidade | Requisito do MD | Estado atual | Evidência no código | Problemas | Próxima ação |
+|---|---|---|---|---|---|---|
+| EV01 | Missões/conquistas | Progressão sem bloquear jogo livre | IMPLEMENTADO E VALIDADO | [Objetivos](../../scripts/Objetivos.gd), [Evolução](../../scripts/Evolucao.gd) | Seis metas, sem campanha narrativa | Ampliar objetivos após playtest |
+| EV02 | Calendário tecnológico | Novas gerações/requisitos | IMPLEMENTADO E VALIDADO | [Campanha](../../scripts/Campanha.gd), [Jogos](../../scripts/CatalogoJogos.gd) | Quatro lançamentos e dois jogos adicionais; não gerações ilimitadas | Balancear datas/demanda |
+| EV03 | Assistência profunda | Diagnóstico/reparo por defeito | IMPLEMENTADO E VALIDADO | [Serviços](../../scripts/CatalogoServicos.gd), [Comércio](../../scripts/Comercio.gd) | Três cenários simulados, não diagnóstico universal | Mais casos por evidência |
+| EV04 | Pisos e setores | Construção/acabamentos | PARCIAL | [Reforma](../../scripts/Reforma.gd), [Interior](../../scripts/Imoveis/InteriorModular.gd) | Pisos/setores testados; pintura/acabamentos de paredes não entregues | Definir arte/acabamentos restantes |
+| EV05 | Personagens modulares | Aparência persistente | PARCIAL | [Aparência](../../scripts/Aparencia.gd), [Personagem](../../scripts/PersonagemAnimado.gd) | Acessórios nativos, não corpo/roupa/cabelo finais | Produzir arte mediante aprovação |
+| EV06 | Tutorial e telas | UX/touch/Android | PARCIAL | [Interface](../../scripts/InterfaceJogo.gd), [Controlador](../../scripts/RuaComercial.gd) | Guia/HUD testados; notch/paineis sem aparelho | Homologar tamanhos e notch |
+| EV07 | Campanhas longas | Economia/crescimento | IMPLEMENTADO E VALIDADO | [Teste de evolução](../../tests/test_evolution.gd) | 56 dias determinísticos, não teste humano/mercado completo | Campanhas com outras estratégias |
+| EV08 | Preparação release | Desempenho/persistência/exportação | PARCIAL | [Workflow](../../.github/workflows/build-android.yml), [CI sem APK](../../.github/workflows/validate-game.yml) | Pausa e diagnóstico locais; sem SDK/aparelho/keystore para homologar | Medir bateria/memória/FPS e instalar release autorizado |
+| EV09 | Mundo/IA | Circulação, trânsito, eventos | PARCIAL | [Mundo](../../scripts/MundoVivo.gd), [Controlador](../../scripts/RuaComercial.gd) | Rotas/visitas/tráfego testados; sem avoidance e eventos narrativos | Validar densidade e interação dos atores |
+| EV10 | Arte aprovada | Quatro vistas/gabinete/portas | PARCIAL | [Arte pendente](../../ARTE_PENDENTE.md), [Gabinete](../../scripts/GabineteVisual.gd) | 33 vistas e arte final ainda faltam; diagrama funcional não as substitui | Obter aprovação para arte final |
+
+Resultado global: **3.090 verificações headless + 1.419 renderizadas + 10 testes
+de imagens**, sem falhas. Não equivale ao documento mestre inteiro concluído.
+
 Base auditada: `b7fcb81`, 03/11/2026. Referência: Documento Mestre v1.0.
 Matriz atualizada para a árvore de trabalho após os seis blocos autorizados.
 Os estados validados referem-se às fatias delimitadas e testes desktop,

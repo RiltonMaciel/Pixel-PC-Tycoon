@@ -1,7 +1,14 @@
 name: Pixel PC Tycoon V0.4.8 - APK Android
 on:
   workflow_dispatch:
+    inputs:
+      modo:
+        description: Tipo de APK (release exige keystore nos secrets)
+        type: choice
+        options: [debug, release]
+        default: debug
   push:
+    branches: [main]
     paths:
       - "project.godot"
       - "scenes/**"
@@ -111,6 +118,15 @@ jobs:
           cat /tmp/campaign-tests.log
           grep -Eq '^RESULT: [0-9]+ passed, 0 failed$' /tmp/campaign-tests.log
           if grep -Eqi '(SCRIPT ERROR|Parse Error|ERROR:)' /tmp/campaign-tests.log; then exit 1; fi
+      - name: Testar objetivos, mundo vivo e evolucao
+        run: |
+          set -euo pipefail
+          for suite in objectives world evolution; do
+            timeout 200 "$HOME/godot-bin/godot" --headless --path . --script "tests/test_$suite.gd" > "/tmp/test_$suite.log" 2>&1 || { cat "/tmp/test_$suite.log"; exit 1; }
+            cat "/tmp/test_$suite.log"
+            grep -Eq '^RESULT: [0-9]+ passed, 0 failed$' "/tmp/test_$suite.log"
+            if grep -Eqi '(SCRIPT ERROR|Parse Error|ERROR:)' "/tmp/test_$suite.log"; then exit 1; fi
+          done
       - name: Preparar exportacao Android
         run: |
           set -euo pipefail
@@ -180,14 +196,49 @@ jobs:
           echo "Godot editor settings after startup:"
           cat "$HOME/.config/godot/editor_settings-4.4.tres" || true
           grep -Ei "android|sdk|keystore|export|error|warning" /tmp/android-diagnostics.log | tail -100 || true
-      - name: Gerar APK novo
+      - name: Configurar assinatura release
+        if: github.event_name == 'workflow_dispatch' && inputs.modo == 'release'
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}
+          KEYSTORE_ALIAS: ${{ secrets.ANDROID_RELEASE_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_PASSWORD }}
         run: |
           set -euo pipefail
-          "$HOME/godot-bin/godot" --headless --path . --editor --export-debug Android "$GITHUB_WORKSPACE/Pixel_PC_Tycoon_V048.apk"
-          test -s Pixel_PC_Tycoon_V048.apk
-          unzip -t Pixel_PC_Tycoon_V048.apk
+          python3 - <<'PY'
+          import base64, os, re
+          from pathlib import Path
+          for key in ('KEYSTORE_B64', 'KEYSTORE_ALIAS', 'KEYSTORE_PASSWORD'):
+              if not os.environ.get(key):
+                  raise SystemExit('Secret obrigatorio ausente: ' + key)
+          keystore = Path(os.environ['RUNNER_TEMP']) / 'release.keystore'
+          keystore.write_bytes(base64.b64decode(os.environ['KEYSTORE_B64'], validate=True))
+          preset = Path('export_presets.cfg')
+          raw = preset.read_text()
+          values = {
+              'keystore/release': str(keystore),
+              'keystore/release_user': os.environ['KEYSTORE_ALIAS'],
+              'keystore/release_password': os.environ['KEYSTORE_PASSWORD'],
+          }
+          import json
+          for key, value in values.items():
+              line = key + '=' + json.dumps(value)
+              pattern = r'(?m)^' + re.escape(key) + r'=.*$'
+              if re.search(pattern, raw):
+                  raw = re.sub(pattern, lambda _: line, raw)
+              else:
+                  raw += '\n' + line + '\n'
+          preset.write_text(raw)
+          PY
+      - name: Gerar APK novo
+        env:
+          MODO: ${{ github.event_name == 'workflow_dispatch' && inputs.modo == 'release' && 'release' || 'debug' }}
+        run: |
+          set -euo pipefail
+          "$HOME/godot-bin/godot" --headless --path . --editor "--export-$MODO" Android "$GITHUB_WORKSPACE/Pixel_PC_Tycoon_V048-$MODO.apk"
+          test -s "Pixel_PC_Tycoon_V048-$MODO.apk"
+          unzip -t "Pixel_PC_Tycoon_V048-$MODO.apk"
       - uses: actions/upload-artifact@v4
         with:
           name: Pixel-PC-Tycoon-V048-APK
-          path: Pixel_PC_Tycoon_V048.apk
+          path: Pixel_PC_Tycoon_V048-*.apk
           if-no-files-found: error

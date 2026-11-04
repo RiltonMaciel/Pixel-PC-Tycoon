@@ -14,6 +14,11 @@ const U := Vector2(64,32)
 const V := Vector2(-64,32)
 var tamanho := Vector2i(6,5)
 var origem := Vector2(700,240)
+var acabamentos: Dictionary = {}
+
+func aplicar_acabamentos(dados: Dictionary) -> void:
+    acabamentos = dados.duplicate(true)
+    configurar({"modulos":tamanho,"origem":origem})
 
 static func ponto(uv: Vector2, inicio: Vector2) -> Vector2:
     return inicio + U * uv.x + V * uv.y
@@ -30,7 +35,16 @@ func configurar(dados: Dictionary) -> void:
         child.queue_free()
     for u in range(tamanho.x):
         for v in range(tamanho.y):
-            _peca(PISOS[(u * 7 + v * 11) % PISOS.size()],ponto(Vector2(u,v),origem) - Vector2(64,0),-20)
+            var celula: Dictionary = preload("res://scripts/Reforma.gd").celula(acabamentos,u,v)
+            _peca(PISOS[int(celula["piso"])],ponto(Vector2(u,v),origem) - Vector2(64,0),-20)
+            if not celula["setor"].is_empty():
+                var rotulo := Label.new()
+                rotulo.text = celula["setor"]
+                rotulo.position = ponto(Vector2(u+0.5,v+0.5),origem) - Vector2(25,4)
+                rotulo.add_theme_font_size_override("font_size",9)
+                rotulo.z_index = -15
+                rotulo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+                add_child(rotulo)
     for u in range(tamanho.x):
         _peca(DIREITA,ponto(Vector2(u,0),origem) - Vector2(32,144),-10)
     for v in range(tamanho.y):

@@ -6,6 +6,8 @@ const Comercio = preload("res://scripts/Comercio.gd")
 const Calendario = preload("res://scripts/CalendarioEconomia.gd")
 const Clientes = preload("res://scripts/Clientes.gd")
 const Equipe = preload("res://scripts/Equipe.gd")
+const Evolucao = preload("res://scripts/Evolucao.gd")
+const Reforma = preload("res://scripts/Reforma.gd")
 const SAVE_PATH := "user://pixel_pc_tycoon_v1.json"
 const LEGACY_PATH := "user://pixel_pc_tycoon_v042.save"
 var ultimo_erro := ""
@@ -19,6 +21,7 @@ var calendario: Dictionary = {}
 var clientes: Dictionary = {}
 var equipe: Dictionary = {}
 var unidade_id := "pc_store_001"
+var evolucao: Dictionary = {}
 
 func entrar(id: String) -> Dictionary:
     var dados := Catalogo.buscar(id,int(estados.get(id,{}).get("nivel",0)))
@@ -45,6 +48,16 @@ func _erro(mensagem: String) -> void:
 
 func gravar(dinheiro: int, caminho: String = SAVE_PATH) -> bool:
     ultimo_erro = ""
+    if not evolucao.is_empty() and not Evolucao.validar(evolucao):
+        _erro("Objetivos/tutorial/aparencia invalidos; save preservado.")
+        return false
+    for id in estados:
+        if not Catalogo.IMOVEIS.has(id) or not estados[id] is Dictionary or not _numero(estados[id].get("nivel",0)) or not float(estados[id].get("nivel",0)) in [0.0,1.0,2.0]:
+            _erro("Estado de imovel invalido; save preservado.")
+            return false
+        if not Reforma.validar(estados[id].get("acabamentos",{}),Catalogo.buscar(id,int(estados[id].get("nivel",0)))["modulos"]):
+            _erro("Acabamentos invalidos; save preservado.")
+            return false
     if not comercio.is_empty() and not Comercio.validar(comercio):
         _erro("Estado comercial invalido; gravacao cancelada e save preservado.")
         return false
@@ -81,6 +94,8 @@ func gravar(dinheiro: int, caminho: String = SAVE_PATH) -> bool:
         dados["clientes"] = clientes
     if not equipe.is_empty():
         dados["equipe"] = equipe
+    if not evolucao.is_empty():
+        dados["evolucao"] = evolucao
     arquivo.store_string(JSON.stringify(dados))
     arquivo.flush()
     var erro := arquivo.get_error()
@@ -111,6 +126,7 @@ func ler(caminho: String = SAVE_PATH, legado: String = LEGACY_PATH) -> Dictionar
     calendario = {}
     clientes = {}
     equipe = {}
+    evolucao = {}
     unidade_id = "pc_store_001"
     var principal_existe := FileAccess.file_exists(caminho) or DirAccess.dir_exists_absolute(caminho)
     var backup_existe := FileAccess.file_exists(caminho + ".bak") or DirAccess.dir_exists_absolute(caminho + ".bak")
@@ -155,6 +171,7 @@ func ler(caminho: String = SAVE_PATH, legado: String = LEGACY_PATH) -> Dictionar
     calendario = (dados.get("calendario",{}) as Dictionary).duplicate(true)
     clientes = (dados.get("clientes",{}) as Dictionary).duplicate(true)
     equipe = (dados.get("equipe",{}) as Dictionary).duplicate(true)
+    evolucao = (dados.get("evolucao",{}) as Dictionary).duplicate(true)
     unidade_id = str(dados.get("unidade","pc_store_001"))
     return dados
 
@@ -245,6 +262,8 @@ func _validar(dados: Dictionary) -> bool:
         return false
     if dados.has("equipe") and (not dados["equipe"] is Dictionary or not Equipe.validar(dados["equipe"])):
         return false
+    if dados.has("evolucao") and (not dados["evolucao"] is Dictionary or not Evolucao.validar(dados["evolucao"])):
+        return false
     if not _vinculos_oficina(dados.get("comercio",{}),dados.get("clientes",{})):
         return false
     for id in dados["imoveis"]:
@@ -254,6 +273,8 @@ func _validar(dados: Dictionary) -> bool:
         if not estado is Dictionary or not estado.get("moveis") is Array:
             return false
         if not _numero(estado.get("nivel",0)) or not float(estado.get("nivel",0)) in [0.0,1.0,2.0]:
+            return false
+        if not estado.get("acabamentos",{}) is Dictionary or not Reforma.validar(estado.get("acabamentos",{}),Catalogo.buscar(id,int(estado.get("nivel",0)))["modulos"]):
             return false
         if dados["versao"] == 2 and not estado.get("guardados",[]) is Array:
             return false
