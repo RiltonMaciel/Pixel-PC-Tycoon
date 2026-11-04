@@ -27,7 +27,7 @@ jobs:
           cat /tmp/import.log
           if grep -Eqi '(SCRIPT ERROR|Parse Error|ERROR:)' /tmp/import.log; then exit 1; fi
           python tests/test_assets.py
-          for suite in game save_recovery progression simulation campaign objectives world evolution; do
+          for suite in game save_recovery progression simulation campaign objectives world evolution visual_preview; do
             timeout 200 "$GODOT" --headless --path . --script "tests/test_$suite.gd" > "/tmp/test_$suite.log" 2>&1 || { cat "/tmp/test_$suite.log"; exit 1; }
             cat "/tmp/test_$suite.log"
             grep -Eq '^RESULT: [0-9]+ passed, 0 failed$' "/tmp/test_$suite.log"
