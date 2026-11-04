@@ -1,5 +1,25 @@
 # Arte pendente - prompts para a outra IA
 
+## Estado vigente: pacote amostras v1 fornecido e autorizado
+
+Integrados os nove PNGs recebidos: compacto azul/picape em quatro vistas e
+mercadinho, agora padrao autorizado. [AmostrasV1](Assets/Cenarios/AmostrasV1/)
+mantem os bytes do ZIP. Nao ha redesenho ou deformacao adicional.
+Em `Financas > Visual do bairro`, compare com os originais preservados.
+
+Correcao da inspecao inicial: o quadriculado da fachada esta no RGB oculto
+sob alfa zero. Composicao sobre fundo solido e captura Godot confirmam que
+nao deve ser apagado por um recorte automatico.
+
+Pivo dos carros (256,250), escala comum 0,85; soleira da fachada (319,486).
+Colisao atualizada pelos marcos recebidos e rotas ambientes recalculadas
+ao trocar o visual. O pacote ainda e uma amostra: coerencia artistica exata
+entre quatro vistas e adequacao final devem ser revisadas visualmente.
+Faltam farmacia, roupas, restaurante, predio comercial, furgao, 33 vistas de
+moveis, portas definitivas e hardware/personagens finais.
+
+O historico procedural abaixo nao e o visual padrao atual.
+
 ## Prioridade vigente: carros, fachadas e proporcoes
 
 Foi autorizada a criacao de novos sprites respeitando o traco do jogo.

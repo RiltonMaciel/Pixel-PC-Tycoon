@@ -14,14 +14,14 @@ var entradas: Array[Dictionary] = []
 var objetos: Array[Sprite2D] = []
 var fachadas: Array[Node2D] = []
 var grid: Transform2D
-var previa_visual := false
+var previa_visual := VISUAL.PADRAO
 var construtor_fachada: Callable
 
 func configurar(transformacao: Transform2D, criar_fachada: Callable) -> void:
     grid = transformacao
     construtor_fachada = criar_fachada
     for loja in LOJAS:
-        var item: Dictionary = CATALOGO.ITENS[loja.id]
+        var item := VISUAL.loja(loja.id,previa_visual)
         fachadas.append(_criar_loja(loja))
         var origem: Vector2 = grid * loja.uv - item.pivo
         var poligono := PackedVector2Array()
@@ -54,16 +54,17 @@ func configurar(transformacao: Transform2D, criar_fachada: Callable) -> void:
     _objeto("furgao_entregas_cima_esquerda",Vector2(12,19),Vector2(125,48),0.9)
 
 func _objeto(id: String, uv: Vector2, base: Vector2, escala: float = 1.0, altura: float = 0.0) -> void:
-    var item: Dictionary = CATALOGO.ITENS[id]
+    var original: Dictionary = CATALOGO.ITENS[id]
     if altura > 0:
-        escala = altura / float(item.altura)
+        escala = altura / float(original.altura)
+    var item := VISUAL.veiculo(id,previa_visual)
     var sprite := Sprite2D.new()
     sprite.name = id + "_" + str(objetos.size())
     sprite.texture = item.textura
     sprite.centered = false
     sprite.offset = -item.pivo
     sprite.position = grid * uv
-    sprite.scale = Vector2.ONE * escala
+    sprite.scale = Vector2.ONE * float(item.get("escala",escala))
     sprite.z_index = int(sprite.position.y)
     sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_DISABLED
@@ -92,6 +93,11 @@ func definir_previa(ativa: bool) -> void:
         remove_child(anterior)
         anterior.queue_free()
         fachadas[i] = _criar_loja(LOJAS[i])
+        var item := VISUAL.loja(LOJAS[i].id,ativa)
+        var poligono := PackedVector2Array()
+        for at in [item.frente,item.canto,item.fundo,item.frente+item.fundo-item.canto]:
+            poligono.append(grid*LOJAS[i].uv-item.pivo+at)
+        obstaculos[i] = poligono
     for sprite in objetos:
         var id: String = sprite.get_meta("catalogo_id")
         var item := VISUAL.veiculo(id,ativa)

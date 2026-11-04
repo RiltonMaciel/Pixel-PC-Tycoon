@@ -33,7 +33,7 @@ var cafeteria: Node2D
 var banco: Sprite2D
 var poste: Sprite2D
 var vizinhanca: VIZINHANCA
-var previa_visual := false
+var previa_visual := VIZINHANCA.VISUAL.PADRAO
 
 static func ponto(uv: Vector2) -> Vector2:
     return ORIGEM + U * uv.x + V * uv.y

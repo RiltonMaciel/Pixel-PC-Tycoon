@@ -3,6 +3,34 @@
 Prototipo Android em Godot **4.4.1 Standard**, GDScript e pixel art.
 Resolucao de referencia: 432 x 768, retrato. Nao usa .NET nem HTML.
 
+## Amostras v1 fornecidas: novo visual padrao
+
+O pacote `pixel_pc_tycoon_amostras_v1.zip` foi integrado com autorizacao para
+usar os novos sprites por padrao. **Nao e preciso ativar uma previa**:
+ao abrir o jogo, compacto azul, picape vermelha e mercadinho ja usam o pacote.
+As demais fachadas e o furgao continuam com os recursos existentes.
+
+- Nove PNGs em [AmostrasV1](Assets/Cenarios/AmostrasV1/), identicos byte a byte
+  aos fornecidos. Nao houve redesenho, recorte, giro ou limpeza dos pixels.
+- A fachada tem transparencia real: o quadriculado visto em alguns
+  visualizadores esta nos canais RGB ocultos, com alfa zero, nao no jogo.
+- Veiculos parados/em movimento usam escala 0,85 e pivo (256,250), conforme
+  o pacote. Fachada usa soleira/pivo (319,486), sem esticar para a caixa antiga.
+- A colisao do mercadinho acompanha os novos marcos; comparacoes recalculam
+  as rotas/reiniciam somente os atores ambientes, sem mexer na economia/saves.
+- Em `Financas > Visual do bairro: usar originais`, restaure os sprites antigos.
+  Essa comparacao vale para a sessao; reabrir inicia com as amostras autorizadas.
+- Os 142 PNGs antigos e os prototipos procedurais anteriores continuam preservados.
+  Os prototipos nao sao mais os recursos usados pelo seletor visual.
+
+Importacao reproduzivel: `python tools/import_amostras_v1.py caminho_do_zip`.
+O manifesto recebido e hashes do arquivo/pacote acompanham a importacao.
+Validacao: **3198 verificacoes Godot headless, 95 renderizadas e 13 testes
+Python/Pillow**, sem falhas; tres capturas (originais, mercado/carro novos,
+picape nova). Importacao sem erros; nenhum APK gerado. Teste desktop nao
+equivale a homologacao Android nem aprovacao estetica de todas as vistas.
+As secoes de previa procedural abaixo sao historicas e nao descrevem o padrao atual.
+
 ## Circulacao: primeiro incremento de IA
 
 Depois da entrega visual, o mundo passou a escalonar nascimentos: pedestres

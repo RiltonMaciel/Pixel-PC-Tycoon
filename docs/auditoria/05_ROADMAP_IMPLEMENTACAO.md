@@ -1,5 +1,15 @@
 # 05 - Roadmap incremental de implementação
 
+## Atualizacao: amostras v1 recebidas
+
+Pacote externo integrado e autorizado como padrao: compacto/picape em quatro
+vistas e mercadinho, com originais preservados. Comparacao em Financas; nao
+usa mais os prototipos procedurais como amostra ativa. Nove PNGs do ZIP sem
+alteracao, colisao/pivos atualizados e validacao desktop (3.198 headless,
+95 renderizadas, 13 testes de imagens). Proximo trabalho visual: revisar
+no aparelho e ampliar as outras fachadas/furgao com arte equivalente.
+O PR #16 e uma reforma paralela, nao foi aplicado por esta integracao.
+
 ## Ordem vigente solicitada: visual antes das outras expansoes
 
 1. **Visual do bairro:** previa reversivel entregue com dois carros/quatro

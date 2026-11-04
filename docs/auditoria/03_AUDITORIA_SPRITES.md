@@ -1,5 +1,30 @@
 # 03 - Auditoria de sprites e recursos visuais
 
+## Integracao vigente: pacote externo amostras v1
+
+[AmostrasV1](../../Assets/Cenarios/AmostrasV1/) contem os nove PNGs recebidos
+com SHA-256 identico ao ZIP: oito veiculos 512x320 e mercadinho 704x576.
+[Importador](../../tools/import_amostras_v1.py) valida dimensoes/RGBA/pivos e
+registra hashes, sem editar pixels. Atlases/prancha nao sao texturas do jogo.
+
+O quadriculado da fachada esta sob alfa zero; a primeira inspecao no
+visualizador foi corrigida pela composicao e renderizacao reais. Nenhum
+recorte automatico foi aplicado. Sombras permanecem integradas como fornecidas.
+
+Padrao autorizado ligado em fachadas, objetos estacionados e trafego.
+Pivo de veiculos (256,250), escala 0,85; fachada ancorada na soleira (319,486).
+Seu footprint usa os novos marcos, e a profundidade visual deriva da base real,
+nao do telhado. Reverter pelo painel restaura colisao/arte antigas e recalcula
+circulacao. Nao modifica saves nem redesenha outros recursos.
+
+Preservados os 142 PNGs originais e as amostras procedurais historicas. Estas
+nao sao mais selecionadas pelo jogo. Qualidade/identidade entre vistas ainda
+exigem aprovacao estetica humana; nao se deduz qualidade dos hashes/testes.
+
+Validacao da integracao: 3.198 verificacoes Godot headless, 95 renderizadas,
+13 testes de imagens; tres capturas desktop e importacao sem erros. Os
+resultados nao homologam Android. As secoes abaixo sao historicas.
+
 ## Entrega vigente: amostras visuais separadas e reversiveis
 
 - [PreviaVisual](../../Assets/Cenarios/PreviaVisual/): oito PNGs de veiculos

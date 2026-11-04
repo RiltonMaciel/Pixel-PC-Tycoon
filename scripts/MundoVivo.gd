@@ -50,7 +50,7 @@ var _configurado := false
 var _sequencia := 0
 var _turno_pedestre := 0
 var _turno_trafego := 0
-var previa_visual := false
+var previa_visual := VISUAL.PADRAO
 
 func definir_previa(ativa: bool) -> void:
     previa_visual = ativa
