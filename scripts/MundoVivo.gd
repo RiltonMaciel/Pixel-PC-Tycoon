@@ -60,7 +60,11 @@ func _visual_veiculo(ator: Dictionary) -> void:
     var item := VISUAL.veiculo(ator.veiculo_id,previa_visual)
     ator.no.texture = item.textura
     ator.no.offset = -item.pivo
-    ator.no.scale = Vector2.ONE * float(item.get("escala",0.65))
+    var original: Dictionary = CATALOGO.ITENS[ator.veiculo_id]
+    var escala_visual := 0.65
+    if previa_visual and item.textura != original.textura:
+        escala_visual *= float(original.altura) / maxf(1.0,float(item.textura.get_height()))
+    ator.no.scale = Vector2.ONE * escala_visual
 
 func configurar(bairro_ou_dados: Variant) -> bool:
     _limpar()

@@ -89,6 +89,8 @@ func _ready() -> void:
     vizinhanca = VIZINHANCA.new()
     add_child(vizinhanca)
     vizinhanca.configurar(Transform2D(U,V,ORIGEM),_fachada)
+    # Ativa os recursos detalhados ja presentes em Assets/Cenarios/PreviaVisual.
+    definir_previa(true)
 
 func _draw() -> void:
     _piso(Rect2(0,0,TAMANHO.x,RUA_INICIO),Color.WHITE,CALCADA)
@@ -107,6 +109,7 @@ func _draw() -> void:
     for u in [10,34,58]:
         _seta(Vector2(u,15),1)
         _seta(Vector2(u,19),-1)
+    _detalhes_rua()
     if previa_visual:
         _acabamento_calcadas()
 
@@ -114,6 +117,30 @@ func definir_previa(ativa: bool) -> void:
     previa_visual = ativa
     vizinhanca.definir_previa(ativa)
     queue_redraw()
+
+
+# Acabamento urbano discreto, desenhado sobre o mapa existente.
+# Nao altera malha de colisao, faixas de travessia ou sprites aprovados.
+func _detalhes_rua() -> void:
+    # Guias: borda clara e sombra do desnivel junto ao asfalto.
+    _piso(Rect2(0,RUA_INICIO-0.08,TAMANHO.x,0.08),Color("#aaa69b"))
+    _piso(Rect2(0,RUA_FIM-0.06,TAMANHO.x,0.06),Color("#4b4b4a"))
+    # Juntas sutis das placas da calcada, sem criar uma grade de losangos.
+    for u in range(0,TAMANHO.x,2):
+        for v in [RUA_INICIO-0.95,RUA_FIM+0.65]:
+            _piso(Rect2(u+0.04,v,0.025,0.60),Color("#8e8e8b",0.38))
+    # Drenos junto ao meio-fio, longe das travessias.
+    for u in [7,29,53,70]:
+        for v in [RUA_INICIO+0.22,RUA_FIM-0.45]:
+            _piso(Rect2(u,v,0.66,0.26),Color("#34373a"))
+            for i in range(4):
+                _piso(Rect2(u+0.09+i*0.14,v+0.035,0.045,0.18),Color("#737779"))
+    # Piso tatil nos dois lados de cada travessia.
+    for inicio in TRAVESSIAS:
+        for v in [RUA_INICIO-0.44,RUA_FIM+0.17]:
+            _piso(Rect2(inicio+0.12,v,1.76,0.20),Color("#c9a54d"))
+            for i in range(9):
+                _piso(Rect2(inicio+0.18+i*0.19,v+0.06,0.075,0.06),Color("#edcf77"))
 
 func _acabamento_calcadas() -> void:
     for v in [RUA_INICIO-0.42,RUA_FIM+0.28]:

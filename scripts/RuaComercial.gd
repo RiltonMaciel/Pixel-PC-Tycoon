@@ -142,6 +142,8 @@ func _ready() -> void:
     _load()
     mundo_vivo = MUNDO_VIVO.new()
     add_child(mundo_vivo)
+    # Sincroniza a simulacao urbana com a aparencia inicial do bairro.
+    mundo_vivo.definir_previa(bairro.previa_visual)
     if not mundo_vivo.configurar(bairro):
         info.text = "ERRO: nao foi possivel configurar a circulacao do bairro."
     mundo_vivo.pedestre_chegou_loja.connect(_cliente_da_rua)
@@ -2050,6 +2052,11 @@ func _alternar_previa_visual() -> bool:
         return false
     bairro.definir_previa(not bairro.previa_visual)
     mundo_vivo.definir_previa(bairro.previa_visual)
+    # Reconstroi as rotas e colisoes apos trocar fachadas de dimensoes diferentes.
+    # A simulacao urbana e reiniciada sem alterar o progresso da partida.
+    if not mundo_vivo.configurar(bairro):
+        info.text = "Falha ao atualizar rotas da vizinhanca: " + mundo_vivo.ultimo_erro
+        return false
     info.text = "Previa visual nesta sessao; arte pendente de aprovacao. Originais preservados." if bairro.previa_visual else "Visual original restaurado."
     _abrir_financas()
     return true
