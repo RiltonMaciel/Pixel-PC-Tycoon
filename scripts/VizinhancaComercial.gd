@@ -21,13 +21,8 @@ func configurar(transformacao: Transform2D, criar_fachada: Callable) -> void:
     grid = transformacao
     construtor_fachada = criar_fachada
     for loja in LOJAS:
-        var item: Dictionary = CATALOGO.ITENS[loja.id]
         fachadas.append(_criar_loja(loja))
-        var origem: Vector2 = grid * loja.uv - item.pivo
-        var poligono := PackedVector2Array()
-        for at in [item.frente,item.canto,item.fundo,item.frente+item.fundo-item.canto]:
-            poligono.append(origem+at)
-        obstaculos.append(poligono)
+        obstaculos.append(_poligono_loja(loja))
         entradas.append({"nome":loja.nome,"posicao":grid*loja.uv+Vector2(0,28)})
     for u in [26,35,46,55,62]:
         _objeto("arvore_copa_redonda",Vector2(u,11),Vector2(18,12),0.9)
@@ -75,6 +70,14 @@ func _objeto(id: String, uv: Vector2, base: Vector2, escala: float = 1.0, altura
         sprite.position+Vector2(0,-base.y),sprite.position+Vector2(base.x,0),
         sprite.position+Vector2(0,base.y)]))
 
+func _poligono_loja(loja: Dictionary) -> PackedVector2Array:
+    var item: Dictionary = VISUAL.loja(loja.id,previa_visual)
+    var origem: Vector2 = grid * loja.uv - item.pivo
+    var poligono := PackedVector2Array()
+    for at in [item.frente,item.canto,item.fundo,item.frente+item.fundo-item.canto]:
+        poligono.append(origem+at)
+    return poligono
+
 func _criar_loja(loja: Dictionary) -> Node2D:
     var item := VISUAL.loja(loja.id,previa_visual)
     var textura: Texture2D = item.textura
@@ -92,6 +95,7 @@ func definir_previa(ativa: bool) -> void:
         remove_child(anterior)
         anterior.queue_free()
         fachadas[i] = _criar_loja(LOJAS[i])
+        obstaculos[i] = _poligono_loja(LOJAS[i])
     for sprite in objetos:
         var id: String = sprite.get_meta("catalogo_id")
         var item := VISUAL.veiculo(id,ativa)
