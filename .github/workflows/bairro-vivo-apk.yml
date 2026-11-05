@@ -1,14 +1,16 @@
-name: Bairro Vivo 2.0 - APK de teste
+name: Bairro Vivo 2.1 - APK de teste
 
 on:
   push:
-    branches: [feature/bairro-vivo-2]
+    branches: [feature/bairro-vivo-2, feature/bairro-vivo-2-1-jardineiras]
     paths:
       - ".github/workflows/bairro-vivo-apk.yml"
       - "scripts/**"
+      - "addons/**"
       - "scenes/**"
       - "Assets/**"
       - "project.godot"
+      - ".github/workflows/bairro-vivo-apk.yml"
   workflow_dispatch:
 
 permissions:
@@ -42,7 +44,7 @@ jobs:
             SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
           fi
           test -x "$SDKMANAGER"
-          printf 'y\\n' | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses > /dev/null || true
+          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses > /dev/null || true
           "$SDKMANAGER" --sdk_root="$SDK_ROOT" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       - name: Godot 4.4.1 and matching export templates
         shell: bash
@@ -96,6 +98,13 @@ jobs:
           EOF
           # Export preset values are not shell-expanded by Godot.
           sed -i "s|\$HOME/.android/debug.keystore|$HOME/.android/debug.keystore|" export_presets.cfg
+      - name: Validate Lote 1 PNG assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for id in rosa vermelha amarela azul branca lavanda mista verde; do
+            test -s "Assets/BairroVivo21/Vegetacao/Jardineiras/jardineira_${id}.png" || { echo "::error::Sprite faltando: jardineira_${id}.png"; exit 1; }
+          done
       - name: Import assets
         run: godot --headless --path . --editor --import --quit
       - name: Export Android APK
