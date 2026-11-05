@@ -25,9 +25,18 @@ func _executar() -> void:
     ok = _check(sprite.offset == offset_original, "pivo original preservado") and ok
     ok = _check(sprite.position == posicao_original, "posicao original preservada") and ok
     ok = _check(sprite.material is ShaderMaterial, "material de vento instalado") and ok
+    var material := sprite.material as ShaderMaterial
+    var fase_antes: float = material.get_shader_parameter("fase")
+    vento._process(0.25)
+    var fase_depois: float = material.get_shader_parameter("fase")
+    ok = _check(fase_depois != fase_antes, "fase de vento avanca no tempo") and ok
+    ok = _check(sprite.texture == original and sprite.offset == offset_original, "animacao nao altera arte nem pivo") and ok
     var vizinhanca := VIZINHANCA.new()
     ok = _check(vizinhanca.arvores_animadas, "animacao habilitada por padrao") and ok
     vizinhanca.free()
+    vento.queue_free()
+    await process_frame
+    ok = _check(sprite.material == null, "material original restaurado") and ok
     sprite.queue_free()
     await process_frame
     print("BV-02 estrutural: ", "OK" if ok else "FALHOU")
