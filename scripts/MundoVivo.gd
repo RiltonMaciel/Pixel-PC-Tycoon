@@ -165,7 +165,10 @@ func avancar(delta: float, segundos_do_dia: float, clima_evento: Variant = {}) -
                 ator.observando_ate = -1.0
                 ator.retornando = true
             else:
-                ator.no.atualizar(Vector2.ZERO, dt)
+                # Curiosidade visual: alterna a direcao do olhar sem mover o NPC.
+                var olhar_idx := int(floor((_tempo_simulacao - float(ator.observando_inicio)) / 0.8))
+                var lados := ["frente", "esquerda", "direita", "frente"]
+                ator.no.olhar(lados[clampi(olhar_idx, 0, lados.size() - 1)])
                 continue
         var velocidade := velocidade_veiculo if ator.trafego else velocidade_pedestre
         if not is_finite(velocidade):
@@ -200,8 +203,9 @@ func avancar(delta: float, segundos_do_dia: float, clima_evento: Variant = {}) -
                     "decisao": avaliacao.decisao, "pontuacao": avaliacao.pontuacao})
                 if avaliacao.decisao == "observar":
                     # Permanencia curta e visivel; entrada real exige integracao com a loja.
+                    ator.observando_inicio = _tempo_simulacao
                     ator.observando_ate = _tempo_simulacao + 2.5
-                    ator.no.atualizar(Vector2.ZERO, dt)
+                    ator.no.olhar("frente")
                     continue
             _desativar(ator)
     for evento in eventos:
@@ -453,6 +457,7 @@ func _ativar(trafego: bool) -> bool:
         ator.perfil = INTERESSE.perfil(_sequencia)
     ator.indice = 1
     ator.observando_ate = -1.0
+    ator.observando_inicio = -1.0
     ator.retornando = false
     ator.ativo = true
     ator.no.position = ator.rota.pontos[0]
