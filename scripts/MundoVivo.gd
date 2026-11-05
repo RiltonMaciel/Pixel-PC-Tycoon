@@ -157,10 +157,16 @@ func avancar(delta: float, segundos_do_dia: float, clima_evento: Variant = {}) -
         # A observacao acontece no ponto de chegada, sem atravessar a vitrine.
         if not ator.trafego and float(ator.get("observando_ate", -1.0)) >= 0.0:
             if _tempo_simulacao >= float(ator.observando_ate):
-                _desativar(ator)
+                # O pedestre retorna pela propria calcada, sem desaparecer na vitrine.
+                var retorno: PackedVector2Array = ator.rota.pontos.duplicate()
+                retorno.reverse()
+                ator.rota = {"pontos": retorno, "loja": ""}
+                ator.indice = 1
+                ator.observando_ate = -1.0
+                ator.retornando = true
             else:
                 ator.no.atualizar(Vector2.ZERO, dt)
-            continue
+                continue
         var velocidade := velocidade_veiculo if ator.trafego else velocidade_pedestre
         if not is_finite(velocidade):
             continue
@@ -229,7 +235,7 @@ func estado() -> Dictionary:
         if ator.ativo:
             atores.append({"id": ator.id, "trafego": ator.trafego, "posicao": ator.no.position,
                 "indice": ator.indice, "rota": ator.rota.duplicate(true),
-                "estado_npc": "trafego" if ator.trafego else "observando" if float(ator.get("observando_ate", -1.0)) >= 0.0 else "caminhando"})
+                "estado_npc": "trafego" if ator.trafego else "observando" if float(ator.get("observando_ate", -1.0)) >= 0.0 else "retornando" if ator.get("retornando", false) else "caminhando"})
     return {"atores": atores, "nos": _atores.size(), "configurado": _configurado,
         "rotas_pedestres": _rotas_pedestres.duplicate(true), "rotas_trafego": _rotas_trafego.duplicate(true)}
 
@@ -447,6 +453,7 @@ func _ativar(trafego: bool) -> bool:
         ator.perfil = INTERESSE.perfil(_sequencia)
     ator.indice = 1
     ator.observando_ate = -1.0
+    ator.retornando = false
     ator.ativo = true
     ator.no.position = ator.rota.pontos[0]
     ator.no.visible = true
