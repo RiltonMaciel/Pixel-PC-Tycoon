@@ -144,7 +144,8 @@ func _ready() -> void:
     add_child(mundo_vivo)
     if not mundo_vivo.configurar(bairro):
         info.text = "ERRO: nao foi possivel configurar a circulacao do bairro."
-    mundo_vivo.pedestre_chegou_loja.connect(_cliente_da_rua)
+    # Somente pedestres que decidiram entrar podem criar demanda comercial.
+    mundo_vivo.pedestre_avaliou_loja.connect(_cliente_avaliado_da_rua)
     _refresh()
 
 func _personagem(id: String, at: Vector2) -> PERSONAGEM:
@@ -1988,6 +1989,11 @@ func _notification(what: int) -> void:
         _stop_input()
         if is_node_ready():
             _save()
+
+func _cliente_avaliado_da_rua(pedestre: int, id_loja: String, decisao: String, _pontuacao: float) -> void:
+    if decisao != "entrar":
+        return
+    _cliente_da_rua(pedestre, id_loja, Vector2.ZERO)
 
 func _cliente_da_rua(_pedestre: int, id_loja: String, _ponto: Vector2) -> void:
     if save_bloqueado or transitioning or _tempo_pausado() or id_loja != unidade_id or clientes.estado["fila"].size() >= 4:
