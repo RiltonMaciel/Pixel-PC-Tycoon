@@ -22,13 +22,13 @@ uniform float inicio_copa = 0.58;
 void fragment() {
     vec2 uv = UV;
     // A parte inferior do sprite (base/solo) permanece intacta.
-    float peso = smoothstep(1.0 - inicio_copa, 0.0, uv.y);
+    float peso = 1.0 - smoothstep(0.0, max(1.0 - inicio_copa, 0.001), uv.y);
     float deslocamento = sin(fase + uv.y * 3.0) * amplitude_px * peso;
     vec2 amostra = uv + vec2(deslocamento * TEXTURE_PIXEL_SIZE.x, 0.0);
     if (amostra.x < 0.0 || amostra.x > 1.0) {
         COLOR = vec4(0.0);
     } else {
-        COLOR = texture(TEXTURE, amostra) * COLOR;
+        COLOR = texture(TEXTURE, amostra);
     }
 }
 """
