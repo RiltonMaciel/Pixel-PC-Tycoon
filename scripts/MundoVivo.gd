@@ -13,6 +13,8 @@ extends Node2D
 ## A geometria e imutavel ate a proxima configurar. Nao altera economia nem o bairro.
 
 signal pedestre_chegou_loja(pedestre_id: int, loja_id: String, posicao: Vector2)
+## Evento adicional: nao altera o sinal legado nem dispara vendas automaticamente.
+signal pedestre_avaliou_loja(pedestre_id: int, loja_id: String, decisao: String, pontuacao: float)
 
 const BAIRRO = preload("res://scripts/BairroComercial.gd")
 const IMOVEIS = preload("res://scripts/Imoveis/CatalogoImoveis.gd")
@@ -20,6 +22,7 @@ const CATALOGO = preload("res://scripts/CatalogoVizinhanca.gd")
 const VISUAL = preload("res://scripts/CatalogoPreviaVisual.gd")
 const PERSONAGEM = preload("res://scripts/PersonagemAnimado.gd")
 const CALENDARIO = preload("res://scripts/CalendarioEconomia.gd")
+const INTERESSE = preload("res://scripts/Neighborhood/NPCInteresse.gd")
 const MAX_PEDESTRES := 32
 const MAX_VEICULOS := 8
 const ESPACO_PEDESTRE := 44.0
@@ -48,6 +51,7 @@ var _atores: Array[Dictionary] = []
 var _suspenso := false
 var _configurado := false
 var _sequencia := 0
+var _tempo_simulacao := 0.0
 var _turno_pedestre := 0
 var _turno_trafego := 0
 var previa_visual := VISUAL.PADRAO
@@ -133,6 +137,7 @@ func avancar(delta: float, segundos_do_dia: float, clima_evento: Variant = {}) -
     if not is_finite(delta) or delta <= 0 or not is_finite(segundos_do_dia):
         return
     var dt := minf(delta, PASSO_MAXIMO)
+    _tempo_simulacao += dt
     var metas := densidade(segundos_do_dia, clima_evento)
     var eventos: Array[Dictionary] = []
     for trafego in [false, true]:
@@ -149,6 +154,22 @@ func avancar(delta: float, segundos_do_dia: float, clima_evento: Variant = {}) -
     for ator in _atores:
         if not ator.ativo:
             continue
+        # A observacao acontece no ponto de chegada, sem atravessar a vitrine.
+        if not ator.trafego and float(ator.get("observando_ate", -1.0)) >= 0.0:
+            if _tempo_simulacao >= float(ator.observando_ate):
+                # O pedestre retorna pela propria calcada, sem desaparecer na vitrine.
+                var retorno: PackedVector2Array = ator.rota.pontos.duplicate()
+                retorno.reverse()
+                ator.rota = {"pontos": retorno, "loja": ""}
+                ator.indice = 1
+                ator.observando_ate = -1.0
+                ator.retornando = true
+            else:
+                # Curiosidade visual: alterna a direcao do olhar sem mover o NPC.
+                var olhar_idx := int(floor((_tempo_simulacao - float(ator.observando_inicio)) / 0.8))
+                var lados := ["frente", "esquerda", "direita", "frente"]
+                ator.no.olhar(lados[clampi(olhar_idx, 0, lados.size() - 1)])
+                continue
         var velocidade := velocidade_veiculo if ator.trafego else velocidade_pedestre
         if not is_finite(velocidade):
             continue
@@ -175,10 +196,21 @@ func avancar(delta: float, segundos_do_dia: float, clima_evento: Variant = {}) -
         ator.no.z_index = clampi(int(ator.no.position.y), -4096, 4096)
         if ator.indice >= rota.size():
             if not ator.trafego and not ator.rota.get("loja", "").is_empty():
-                eventos.append({"id": ator.id, "loja": ator.rota.loja, "posicao": ator.no.position})
+                var avaliacao: Dictionary = INTERESSE.avaliar(ator.perfil, ator.rota.loja, _tempo_simulacao)
+                if avaliacao.decisao != "continuar":
+                    INTERESSE.registrar_visita(ator.perfil, ator.rota.loja, _tempo_simulacao)
+                eventos.append({"id": ator.id, "loja": ator.rota.loja, "posicao": ator.no.position,
+                    "decisao": avaliacao.decisao, "pontuacao": avaliacao.pontuacao})
+                if avaliacao.decisao == "observar":
+                    # Permanencia curta e visivel; entrada real exige integracao com a loja.
+                    ator.observando_inicio = _tempo_simulacao
+                    ator.observando_ate = _tempo_simulacao + 2.5
+                    ator.no.olhar("frente")
+                    continue
             _desativar(ator)
     for evento in eventos:
         pedestre_chegou_loja.emit(evento.id, evento.loja, evento.posicao)
+        pedestre_avaliou_loja.emit(evento.id, evento.loja, evento.decisao, evento.pontuacao)
 
 func densidade(segundos_do_dia: float, clima_evento: Variant = {}) -> Dictionary:
     if not is_finite(segundos_do_dia):
@@ -206,7 +238,8 @@ func estado() -> Dictionary:
     for ator in _atores:
         if ator.ativo:
             atores.append({"id": ator.id, "trafego": ator.trafego, "posicao": ator.no.position,
-                "indice": ator.indice, "rota": ator.rota.duplicate(true)})
+                "indice": ator.indice, "rota": ator.rota.duplicate(true),
+                "estado_npc": "trafego" if ator.trafego else "observando" if float(ator.get("observando_ate", -1.0)) >= 0.0 else "retornando" if ator.get("retornando", false) else "caminhando"})
     return {"atores": atores, "nos": _atores.size(), "configurado": _configurado,
         "rotas_pedestres": _rotas_pedestres.duplicate(true), "rotas_trafego": _rotas_trafego.duplicate(true)}
 
@@ -419,7 +452,13 @@ func _ativar(trafego: bool) -> bool:
         _turno_pedestre = indice_rota+1
     _sequencia += 1
     ator.id = _sequencia
+    if not trafego:
+        # O no pode ser reutilizado, mas o perfil pertence ao novo pedestre.
+        ator.perfil = INTERESSE.perfil(_sequencia)
     ator.indice = 1
+    ator.observando_ate = -1.0
+    ator.observando_inicio = -1.0
+    ator.retornando = false
     ator.ativo = true
     ator.no.position = ator.rota.pontos[0]
     ator.no.visible = true
@@ -464,6 +503,7 @@ func _limpar() -> void:
     _rotas_trafego.clear()
     _turno_pedestre = 0
     _turno_trafego = 0
+    _tempo_simulacao = 0.0
 
 func _erro(mensagem: String) -> bool:
     ultimo_erro = mensagem

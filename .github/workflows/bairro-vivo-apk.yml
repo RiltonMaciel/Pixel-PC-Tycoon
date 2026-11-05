@@ -1,0 +1,113 @@
+name: Bairro Vivo 2.0 - APK de teste
+
+on:
+  push:
+    branches: [feature/bairro-vivo-2]
+    paths:
+      - ".github/workflows/bairro-vivo-apk.yml"
+      - "scripts/**"
+      - "scenes/**"
+      - "Assets/**"
+      - "project.godot"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Android platform and build tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          mkdir -p "$SDK_ROOT/cmdline-tools"
+          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -path '*/bin/sdkmanager' -type f -print -quit)"
+          if [ -z "$SDKMANAGER" ]; then
+            curl -fL --retry 3 -o /tmp/android-cmdline-tools.zip "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+            mkdir -p /tmp/android-cli-extract "$SDK_ROOT/cmdline-tools/latest"
+            unzip -q /tmp/android-cmdline-tools.zip -d /tmp/android-cli-extract
+            cp -a /tmp/android-cli-extract/cmdline-tools/. "$SDK_ROOT/cmdline-tools/latest/"
+            SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          fi
+          test -x "$SDKMANAGER"
+          printf 'y\\n' | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses > /dev/null || true
+          "$SDKMANAGER" --sdk_root="$SDK_ROOT" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+      - name: Godot 4.4.1 and matching export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo install -m 755 /tmp/Godot_v4.4.1-stable_linux.x86_64 /usr/local/bin/godot
+          curl -fL --retry 3 -o /tmp/templates.tpz https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          unzip -q /tmp/templates.tpz -d /tmp/godot-templates
+          cp /tmp/godot-templates/templates/* "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
+      - name: Configure Android debug export
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.android" build
+          keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          cat > export_presets.cfg <<'EOF'
+          [preset.0]
+          name="Android"
+          platform="Android"
+          runnable=true
+          advanced_options=false
+          dedicated_server=false
+          custom_features=""
+          export_filter="all_resources"
+          include_filter=""
+          exclude_filter=""
+          export_path="build/Pixel-PC-Tycoon-Bairro-Vivo-2-debug.apk"
+          encryption_include_filters=""
+          encryption_exclude_filters=""
+          encrypt_pck=false
+          encrypt_directory=false
+
+          [preset.0.options]
+          gradle_build/use_gradle_build=false
+          architectures/armeabi-v7a=false
+          architectures/arm64-v8a=true
+          architectures/x86=false
+          architectures/x86_64=false
+          package/unique_name="com.pixelpctycoon.bairrovivo"
+          package/name="Pixel PC Tycoon"
+          package/signed=true
+          version/code=1
+          version/name="0.4.8-bairro-vivo-2"
+          permissions/internet=false
+          keystore/debug="$HOME/.android/debug.keystore"
+          keystore/debug_user="androiddebugkey"
+          keystore/debug_password="android"
+          EOF
+          # Export preset values are not shell-expanded by Godot.
+          sed -i "s|\$HOME/.android/debug.keystore|$HOME/.android/debug.keystore|" export_presets.cfg
+      - name: Import assets
+        run: godot --headless --path . --editor --import --quit
+      - name: Export Android APK
+        run: godot --headless --path . --export-debug Android build/Pixel-PC-Tycoon-Bairro-Vivo-2-debug.apk
+      - name: Verify APK
+        run: |
+          test -s build/Pixel-PC-Tycoon-Bairro-Vivo-2-debug.apk
+          ls -lh build/*.apk
+      - name: Upload APK for testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pixel-PC-Tycoon-Bairro-Vivo-2-Android-debug
+          path: build/Pixel-PC-Tycoon-Bairro-Vivo-2-debug.apk
+          if-no-files-found: error
+          retention-days: 14

@@ -42,7 +42,22 @@ func atualizar(movimento: Vector2, delta: float) -> void:
     else:
         tempo = 0.0
     var frames: Array = quadros[direcao]
-    texture = frames[int(tempo * 8.0) % frames.size()]
+    # Nao alternar o quadro idle enquanto o personagem estiver parado.
+    # A caminhada usa os quadros originais, sem gerar sprites artificiais.
+    texture = frames[int(tempo * 8.0) % frames.size()] if movimento.length_squared() > 0.001 else frames[0]
     z_index = int(position.y)
     if acessorios != null:
         acessorios.configurar(estilo,direcao)
+
+## Muda somente a orientacao visual de um NPC parado, usando sprites idle existentes.
+## Nao altera posicao, escala, textura-base dos quadros ou colisoes.
+func olhar(lado: String) -> void:
+    if not quadros.has(lado):
+        return
+    direcao = lado
+    tempo = 0.0
+    var frames: Array = quadros[lado]
+    if not frames.is_empty():
+        texture = frames[0]
+    if acessorios != null:
+        acessorios.configurar(estilo, direcao)
