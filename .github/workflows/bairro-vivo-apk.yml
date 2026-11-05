@@ -29,12 +29,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # GitHub ubuntu-latest already provides Android command-line tools.
-          # Avoid setup-android@v3: its legacy 'tools' package is unavailable.
-          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
-          command -v sdkmanager
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          mkdir -p "$SDK_ROOT/cmdline-tools"
+          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -path '*/bin/sdkmanager' -type f -print -quit)"
+          if [ -z "$SDKMANAGER" ]; then
+            curl -fL --retry 3 -o /tmp/android-cmdline-tools.zip "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+            mkdir -p /tmp/android-cli-extract "$SDK_ROOT/cmdline-tools/latest"
+            unzip -q /tmp/android-cmdline-tools.zip -d /tmp/android-cli-extract
+            cp -a /tmp/android-cli-extract/cmdline-tools/. "$SDK_ROOT/cmdline-tools/latest/"
+            SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          fi
+          test -x "$SDKMANAGER"
+          printf 'y\\n' | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses > /dev/null || true
+          "$SDKMANAGER" --sdk_root="$SDK_ROOT" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       - name: Godot 4.4.1 and matching export templates
         shell: bash
         run: |
