@@ -1,6 +1,6 @@
 extends SceneTree
 ## Godot --headless --path . --script res://tests/test_bairro_vitrine.gd
-## Verifica transicao real caminhando -> observando -> desativado.
+## Verifica transicao real caminhando -> observando -> retornando -> desativado.
 const MUNDO = preload("res://scripts/MundoVivo.gd")
 const INTERESSE = preload("res://scripts/Neighborhood/NPCInteresse.gd")
 var erros := 0
@@ -52,9 +52,14 @@ func _executar() -> void:
         _check(mundo.estado().atores[0].posicao == posicao, "observacao sem movimento")
     # Desabilita novos nascimentos para conferir a desativacao do observador.
     mundo.limite_pedestres = 0
-    for i in range(12):
+    var retornou := false
+    for i in range(20):
         mundo.avancar(0.25, 450.0)
-    _check(mundo.estado().atores.is_empty(), "observador sai apos espera")
+        for ator in mundo.estado().atores:
+            if ator.estado_npc == "retornando":
+                retornou = true
+    _check(retornou, "observador retorna caminhando pela calcada")
+    _check(mundo.estado().atores.is_empty(), "observador sai ao concluir retorno")
     # O mesmo ator visual reutilizado deve permitir entrada para um perfil gamer.
     mundo.limite_pedestres = 1
     mundo.avancar(0.1, 450.0)
