@@ -154,6 +154,13 @@ func avancar(delta: float, segundos_do_dia: float, clima_evento: Variant = {}) -
     for ator in _atores:
         if not ator.ativo:
             continue
+        # A observacao acontece no ponto de chegada, sem atravessar a vitrine.
+        if not ator.trafego and float(ator.get("observando_ate", -1.0)) >= 0.0:
+            if _tempo_simulacao >= float(ator.observando_ate):
+                _desativar(ator)
+            else:
+                ator.no.atualizar(Vector2.ZERO, dt)
+            continue
         var velocidade := velocidade_veiculo if ator.trafego else velocidade_pedestre
         if not is_finite(velocidade):
             continue
@@ -185,6 +192,11 @@ func avancar(delta: float, segundos_do_dia: float, clima_evento: Variant = {}) -
                     INTERESSE.registrar_visita(ator.perfil, ator.rota.loja, _tempo_simulacao)
                 eventos.append({"id": ator.id, "loja": ator.rota.loja, "posicao": ator.no.position,
                     "decisao": avaliacao.decisao, "pontuacao": avaliacao.pontuacao})
+                if avaliacao.decisao == "observar":
+                    # Permanencia curta e visivel; entrada real exige integracao com a loja.
+                    ator.observando_ate = _tempo_simulacao + 2.5
+                    ator.no.atualizar(Vector2.ZERO, dt)
+                    continue
             _desativar(ator)
     for evento in eventos:
         pedestre_chegou_loja.emit(evento.id, evento.loja, evento.posicao)
@@ -433,6 +445,7 @@ func _ativar(trafego: bool) -> bool:
         # O no pode ser reutilizado, mas o perfil pertence ao novo pedestre.
         ator.perfil = INTERESSE.perfil(_sequencia)
     ator.indice = 1
+    ator.observando_ate = -1.0
     ator.ativo = true
     ator.no.position = ator.rota.pontos[0]
     ator.no.visible = true
