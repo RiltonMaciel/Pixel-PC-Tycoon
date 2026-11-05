@@ -79,6 +79,10 @@ func _executar() -> void:
                 retornou = true
                 _check(mundo.ponto_valido(ator.posicao), "retorno permanece em piso caminhavel")
                 _check(mundo.segmento_valido(posicao_retorno, ator.posicao), "retorno nao atravessa obstaculos")
+                for visual in mundo._atores:
+                    if visual.ativo and not visual.trafego and visual.id == ator.id:
+                        _check(visual.no.texture != null, "sprite de caminhada carregado")
+                        _check(visual.no.direcao == "esquerda", "sprite vira na direcao do retorno")
                 posicao_retorno = ator.posicao
     _check(retornou, "observador retorna caminhando pela calcada")
     _check(posicao_retorno.distance_to(destino) > 0.01, "observador se afasta da vitrine")
