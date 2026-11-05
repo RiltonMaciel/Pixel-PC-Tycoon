@@ -46,3 +46,16 @@ func atualizar(movimento: Vector2, delta: float) -> void:
     z_index = int(position.y)
     if acessorios != null:
         acessorios.configurar(estilo,direcao)
+
+## Muda somente a orientacao visual de um NPC parado, usando sprites idle existentes.
+## Nao altera posicao, escala, textura-base dos quadros ou colisoes.
+func olhar(lado: String) -> void:
+    if not quadros.has(lado):
+        return
+    direcao = lado
+    tempo = 0.0
+    var frames: Array = quadros[lado]
+    if not frames.is_empty():
+        texture = frames[0]
+    if acessorios != null:
+        acessorios.configurar(estilo, direcao)
