@@ -2,6 +2,7 @@ extends SceneTree
 ## Godot --headless --path . --script res://tests/test_bairro_vitrine.gd
 ## Verifica transicao real caminhando -> observando -> desativado.
 const MUNDO = preload("res://scripts/MundoVivo.gd")
+const INTERESSE = preload("res://scripts/Neighborhood/NPCInteresse.gd")
 var erros := 0
 
 func _initialize() -> void:
@@ -54,6 +55,21 @@ func _executar() -> void:
     for i in range(12):
         mundo.avancar(0.25, 450.0)
     _check(mundo.estado().atores.is_empty(), "observador sai apos espera")
+    # O mesmo ator visual reutilizado deve permitir entrada para um perfil gamer.
+    mundo.limite_pedestres = 1
+    mundo.avancar(0.1, 450.0)
+    _check(mundo.estado().atores.size() == 1, "novo pedestre ativo")
+    for ator in mundo._atores:
+        if ator.ativo and not ator.trafego:
+            ator.perfil = INTERESSE.perfil(4)
+    var entrou := false
+    for i in range(80):
+        mundo.avancar(0.25, 450.0)
+        if "entrar" in avaliacoes:
+            entrou = true
+            break
+    _check(entrou, "gamer entra em vez de observar")
+    _check(avaliacoes == ["observar", "entrar"], "sinais comerciais distintos")
     mundo.free()
     print("BV-03 vitrine: ", "OK" if erros == 0 else "FALHOU")
     quit(0 if erros == 0 else 1)
