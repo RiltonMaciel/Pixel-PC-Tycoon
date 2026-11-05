@@ -2,6 +2,9 @@ extends Node2D
 
 const CATALOGO = preload("res://scripts/CatalogoVizinhanca.gd")
 const VISUAL = preload("res://scripts/CatalogoPreviaVisual.gd")
+const VENTO_COPA = preload("res://scripts/Neighborhood/VentoCopa.gd")
+## Reversivel: desativar sem alterar PNGs, posicoes, pivos ou colisao.
+@export var arvores_animadas := true
 const LOJAS := [
     {"id":"mercadinho","nome":"Mercadinho","uv":Vector2(29,10)},
     {"id":"farmacia","nome":"Farmacia","uv":Vector2(38,10)},
@@ -71,6 +74,13 @@ func _objeto(id: String, uv: Vector2, base: Vector2, escala: float = 1.0, altura
     sprite.set_meta("catalogo_id",id)
     sprite.set_meta("escala_original",escala)
     add_child(sprite)
+    if arvores_animadas and id.begins_with("arvore_"):
+        var vento := VENTO_COPA.new()
+        vento.name = "VentoCopa"
+        vento.amplitude_pixels = 0.8
+        vento.ciclos_por_segundo = 0.22 + float(objetos.size() % 5) * 0.035
+        vento.fase = float(objetos.size()) * 1.618
+        sprite.add_child(vento)
     objetos.append(sprite)
     obstaculos.append(PackedVector2Array([sprite.position+Vector2(-base.x,0),
         sprite.position+Vector2(0,-base.y),sprite.position+Vector2(base.x,0),
