@@ -50,6 +50,24 @@ func _executar() -> void:
     mundo.avancar(0.25, 450.0)
     if encontrou:
         _check(mundo.estado().atores[0].posicao == posicao, "observacao sem movimento")
+        var observador: Node = null
+        for ator in mundo._atores:
+            if ator.ativo and not ator.trafego:
+                observador = ator.no
+                break
+        _check(observador != null, "sprite do observador acessivel")
+        if observador != null:
+            _check(observador.direcao == "frente", "observacao inicia olhando para frente")
+            mundo.avancar(0.25, 450.0)
+            mundo.avancar(0.25, 450.0)
+            mundo.avancar(0.25, 450.0)
+            _check(observador.direcao == "esquerda", "observador olha para esquerda")
+            _check(observador.position == posicao, "olhar nao altera a posicao")
+            mundo.avancar(0.25, 450.0)
+            mundo.avancar(0.25, 450.0)
+            mundo.avancar(0.25, 450.0)
+            _check(observador.direcao == "direita", "observador olha para direita")
+            _check(observador.position == posicao, "olhar preserva posicao na vitrine")
     # Mantem a meta ativa ate o fim da observacao; reduzir a meta agora
     # desativaria o pedestre antes de ele poder iniciar o retorno.
     var retornou := false
