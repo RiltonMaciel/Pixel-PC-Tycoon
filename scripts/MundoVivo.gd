@@ -228,7 +228,8 @@ func estado() -> Dictionary:
     for ator in _atores:
         if ator.ativo:
             atores.append({"id": ator.id, "trafego": ator.trafego, "posicao": ator.no.position,
-                "indice": ator.indice, "rota": ator.rota.duplicate(true)})
+                "indice": ator.indice, "rota": ator.rota.duplicate(true),
+                "estado_npc": "trafego" if ator.trafego else "observando" if float(ator.get("observando_ate", -1.0)) >= 0.0 else "caminhando"})
     return {"atores": atores, "nos": _atores.size(), "configurado": _configurado,
         "rotas_pedestres": _rotas_pedestres.duplicate(true), "rotas_trafego": _rotas_trafego.duplicate(true)}
 
