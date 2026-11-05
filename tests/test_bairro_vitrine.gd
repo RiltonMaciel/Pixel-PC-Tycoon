@@ -50,8 +50,8 @@ func _executar() -> void:
     mundo.avancar(0.25, 450.0)
     if encontrou:
         _check(mundo.estado().atores[0].posicao == posicao, "observacao sem movimento")
-    # Desabilita novos nascimentos para conferir a desativacao do observador.
-    mundo.limite_pedestres = 0
+    # Mantem a meta ativa ate o fim da observacao; reduzir a meta agora
+    # desativaria o pedestre antes de ele poder iniciar o retorno.
     var retornou := false
     for i in range(20):
         mundo.avancar(0.25, 450.0)
@@ -59,7 +59,10 @@ func _executar() -> void:
             if ator.estado_npc == "retornando":
                 retornou = true
     _check(retornou, "observador retorna caminhando pela calcada")
-    _check(mundo.estado().atores.is_empty(), "observador sai ao concluir retorno")
+    # Ao encerrar o fluxo, nao deve restar nenhum ator ativo.
+    mundo.limite_pedestres = 0
+    mundo.avancar(0.25, 450.0)
+    _check(mundo.estado().atores.is_empty(), "observador sai ao encerrar fluxo")
     # O mesmo ator visual reutilizado deve permitir entrada para um perfil gamer.
     mundo.limite_pedestres = 1
     mundo.avancar(0.1, 450.0)
