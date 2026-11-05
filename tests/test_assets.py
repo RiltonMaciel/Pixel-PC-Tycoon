@@ -12,6 +12,33 @@ KIT = ROOT / "Assets" / "Cenarios" / "Modular"
 
 
 class AssetsTest(unittest.TestCase):
+    def test_supplied_samples_preserve_sources(self):
+        folder = ROOT / "Assets" / "Cenarios" / "AmostrasV1"
+        manifest = json.loads((folder / "manifesto.json").read_text())
+        imported = json.loads((folder / "importacao.json").read_text())
+        self.assertFalse(imported["pixels_modified"])
+        self.assertEqual(len(imported["sources"]), 9)
+        for name, checksum in imported["sources"].items():
+            path = folder / name
+            with self.subTest(asset=name):
+                self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), checksum)
+                with Image.open(path) as image:
+                    self.assertEqual(image.mode, "RGBA")
+                    self.assertEqual(list(image.size), manifest["assets"][name]["canvas_px"])
+                    self.assertEqual(image.getchannel("A").getextrema(), (0, 255))
+                    box = image.getbbox()
+                    self.assertGreater(min(box[:2]), 0)
+                    self.assertLess(box[2], image.width)
+                    self.assertLess(box[3], image.height)
+                    self.assertEqual(image.getpixel((0, 0))[3], 0)
+        store = Image.open(folder / "fachadas" / "mercadinho" / "mercadinho.png")
+        for point in [(100, 140), (40, 250), (100, 450), (400, 530)]:
+            self.assertEqual(store.getpixel(point)[3], 0, "Hidden RGB is not opaque checkerboard")
+        front = manifest["assets"]["fachadas/mercadinho/mercadinho.png"]["marcos_base_px"]
+        a, b, c = (front[k] for k in ("frontal_esquerdo", "frontal_direito", "traseiro_direito"))
+        self.assertAlmostEqual((b[1]-a[1])/(b[0]-a[0]), 20/64, delta=.005)
+        self.assertAlmostEqual((c[1]-b[1])/(c[0]-b[0]), -32/64, delta=.005)
+
     def test_preview_vehicle_views(self):
         folder = ROOT / "Assets" / "Cenarios" / "PreviaVisual"
         manifest = json.loads((folder / "manifesto.json").read_text(encoding="utf-8"))

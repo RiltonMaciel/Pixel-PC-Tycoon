@@ -1,0 +1,15 @@
+{
+  "archive_sha256": "cd218e4b5c3b2ea219bd454288eae5fc513d90028c0d3f47eaf3d360f0b09a05",
+  "sources": {
+    "veiculos/compacto_azul/baixo_direita.png": "c0914bc1e7561e7ec22d1f7aa658248dc2a6b9a3e396ba531bc2086634ae050d",
+    "veiculos/compacto_azul/baixo_esquerda.png": "bdc3f23e8aef8e0caa716d5b1785940e01fb55460732e78b2344c163c7e45549",
+    "veiculos/compacto_azul/cima_direita.png": "f7459ed4ba1973123e6307295ff62f7f18279157e71213db4bae23f26aedf58e",
+    "veiculos/compacto_azul/cima_esquerda.png": "91e9bf90d3241c78ff56d826634c11a12c04dbdfeaf15e799b2bdb187b6403ad",
+    "veiculos/picape_vermelha/baixo_direita.png": "36ac19079385a573e21ff49d5753e09bcfb09459c35009c7a7f4f1b14a458ae4",
+    "veiculos/picape_vermelha/baixo_esquerda.png": "6d249ccbb33b732a6984aba23e8ac4971d95dad4ac60b3d011be536f7149d6b6",
+    "veiculos/picape_vermelha/cima_direita.png": "9f02c67a906d746426dbff57f159b2a0272a1ec01be145358e497c24cb7ff19c",
+    "veiculos/picape_vermelha/cima_esquerda.png": "b15e352eb217bdb05c4c9b4a2d6ed9ccccb8807a4a34f04e0b41e0d03ea959ec",
+    "fachadas/mercadinho/mercadinho.png": "0952f941c68560141ec31b1f0b025fe30f9af6a9895a91a851ad7a7fa2b3b2f6"
+  },
+  "pixels_modified": false
+}

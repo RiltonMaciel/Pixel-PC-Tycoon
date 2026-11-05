@@ -33,6 +33,7 @@ func _novo() -> MUNDO:
 func _run() -> void:
     _rotas_fornecidas()
     _densidade()
+    _espacamento()
     await _movimento_pausa_pool()
     _bairro_real()
     check(passed + failed >= 50, "Todos os grupos de teste foram executados")
@@ -114,6 +115,74 @@ func _densidade() -> void:
     mundo.limite_pedestres = -1
     mundo.limite_veiculos = -1
     check(mundo.densidade(DIA / 2) == {"pedestres": 0, "veiculos": 0}, "Limites negativos desabilitam populacao")
+    mundo.free()
+
+func _espacamento() -> void:
+    var mundo := _novo()
+    var dados := _dados()
+    var grid := Transform2D(BAIRRO.U,BAIRRO.V,Vector2.ZERO)
+    dados.grid = grid
+    dados.rotas_pedestres = [{"pontos":PackedVector2Array([grid*Vector2(.5,3),grid*Vector2(15.5,3)])}]
+    dados.rotas_trafego = [{"pontos":PackedVector2Array([grid*Vector2(.5,5),grid*Vector2(15.5,5)])}]
+    mundo.limite_pedestres = 3
+    mundo.limite_veiculos = 3
+    check(mundo.configurar(dados),"Configurar nascimento compartilhado")
+    mundo.avancar(.1,DIA/2)
+    check(mundo.estado().atores.size() == 2,"Mesmo portal nao cria tres pedestres ou carros sobrepostos")
+    var seguro := true
+    var identidades: Dictionary = {}
+    var carros: Array[Dictionary] = []
+    for i in range(400):
+        mundo.avancar(.25,DIA/2)
+        var atores: Array = mundo.estado().atores
+        for a in range(atores.size()):
+            identidades[atores[a].id] = true
+            for b in range(a+1,atores.size()):
+                if atores[a].trafego != atores[b].trafego:
+                    continue
+                var espaco := MUNDO.ESPACO_VEICULO if atores[a].trafego else MUNDO.ESPACO_PEDESTRE
+                seguro = seguro and atores[a].posicao.distance_to(atores[b].posicao) >= espaco-.01
+    check(seguro,"Cem segundos de fluxo mantem separacao minima mensuravel")
+    check(identidades.size() > 12,"Espacamento nao congela o fluxo: novos atores completam rotas")
+    for ator in mundo._atores:
+        if ator.ativo and ator.trafego:
+            carros.append(ator)
+    check(carros.size() >= 2,"Mais de um veiculo circula na mesma pista")
+    if carros.size() >= 2:
+        carros.sort_custom(func(a: Dictionary,b: Dictionary) -> bool: return a.no.position.x < b.no.position.x)
+        var seguidor: Dictionary = carros[0]
+        var lider: Dictionary = carros[1]
+        var frente: Vector2 = (seguidor.rota.pontos[seguidor.indice]-seguidor.no.position).normalized()
+        lider.no.position = seguidor.no.position+frente*(MUNDO.ESPACO_VEICULO+10)
+        check(absf(mundo._distancia_trafego(seguidor,60)-10) < .01,"Seguidor limita avanco ao espaco livre, sem ultrapassar o lider")
+    dados.rotas_trafego.append({"pontos":PackedVector2Array([grid*Vector2(15.5,7),grid*Vector2(.5,7)])})
+    check(mundo.configurar(dados),"Configurar dois sentidos")
+    mundo.avancar(.1,DIA/2)
+    var sentidos := [false,false]
+    for ator in mundo.estado().atores:
+        if ator.trafego:
+            var uv: Vector2 = grid.affine_inverse()*ator.posicao
+            sentidos[0 if uv.y < 6 else 1] = true
+    check(sentidos[0] and sentidos[1],"Portal ocupado tenta outra rota, sem bloquear sentido oposto")
+    dados.rotas_pedestres = [{"pontos":PackedVector2Array([grid*Vector2(6.5,3),grid*Vector2(6.5,8.5)])}]
+    dados.rotas_trafego.resize(1)
+    mundo.limite_pedestres = 1
+    mundo.limite_veiculos = 1
+    check(mundo.configurar(dados),"Configurar pedestre atravessando faixa de carro")
+    var parou := false
+    var retomou := false
+    var anterior: Dictionary = {}
+    for i in range(200):
+        mundo.avancar(.25,DIA/2)
+        for ator in mundo.estado().atores:
+            if not ator.trafego:
+                continue
+            if anterior.get("id",-1) == ator.id:
+                var movimento: float = anterior.posicao.distance_to(ator.posicao)
+                parou = parou or movimento < .01
+                retomou = retomou or (parou and movimento > 1)
+            anterior = ator
+    check(parou and retomou,"Carro cede passagem ao pedestre e volta a circular")
     mundo.free()
 
 func _movimento_pausa_pool() -> void:
@@ -227,6 +296,7 @@ func _bairro_real() -> void:
         acesso_amplo = imovel_amplo.saida_externa
     var sentido_positivo := false
     var sentido_negativo := false
+    var margem_carroceria := true
     for rota in estado.rotas_pedestres:
         destino_pc = destino_pc or rota.loja == "pc_store_001"
         if rota.loja == "pc_store_002":
@@ -245,11 +315,15 @@ func _bairro_real() -> void:
             seguro = seguro and mundo.segmento_valido(rota.pontos[i - 1], rota.pontos[i], true)
         for ponto in rota.pontos:
             seguro = seguro and BAIRRO.rua(BAIRRO.celula(ponto).y) and bairro.vizinhanca.piso_livre(ponto)
+            margem_carroceria = margem_carroceria and mundo._corredor_veiculo_livre(ponto)
     check(seguro, "Rotas derivadas respeitam predios, objetos, faixas e limites existentes")
     check(cruzou, "Pedestres cruzam por faixa valida")
     check(destino_pc, "Deriva chegada valida a loja principal")
     check(destino_amplo and mundo.ponto_valido(acesso_amplo), "Deriva rota caminhavel ate acesso cadastrado de pc_store_002")
     check(sentido_positivo and sentido_negativo, "Trafego usa duas faixas com sentidos opostos")
+    check(margem_carroceria,"Rotas reais reservam margem de carroceria, nao apenas o centro do carro")
+    var perto_estacionado := BAIRRO.ponto(Vector2(32,15))+BAIRRO.U.normalized()*160
+    check(mundo.ponto_valido(perto_estacionado,true) and not mundo._corredor_veiculo_livre(perto_estacionado),"Centro livre proximo a carro estacionado nao basta para liberar a carroceria")
     mundo.avancar(0.1, DIA / 2)
     var sprites := true
     for filho in mundo.get_children():

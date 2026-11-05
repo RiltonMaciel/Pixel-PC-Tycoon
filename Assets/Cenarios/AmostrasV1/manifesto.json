@@ -1,0 +1,280 @@
+{
+  "projeto": "Pixel PC Tycoon",
+  "pacote": "amostras v1 para revisao",
+  "quantidade_sprites": 9,
+  "projecao_exterior": {
+    "U": [
+      64,
+      20
+    ],
+    "V": [
+      -64,
+      32
+    ]
+  },
+  "unidades": "pixels no canvas, origem no canto superior esquerdo (0,0)",
+  "assets": {
+    "veiculos/compacto_azul/baixo_direita.png": {
+      "tipo": "veiculo",
+      "modelo": "compacto_azul",
+      "direcao": "baixo_direita",
+      "arquivo": "veiculos/compacto_azul/baixo_direita.png",
+      "canvas_px": [
+        512,
+        320
+      ],
+      "pivo_chao_px": [
+        256,
+        250
+      ],
+      "margem_minima_px": 16,
+      "origem_atlas_bbox": [
+        12,
+        10,
+        384,
+        266
+      ],
+      "origem_pivo_terreno_atlas_px": [
+        174,
+        229
+      ],
+      "sombra": "contato suave integrante da pintura; nao removida sem perda dos pneus",
+      "orientacao": "frente orientada para baixo-direita"
+    },
+    "veiculos/compacto_azul/baixo_esquerda.png": {
+      "tipo": "veiculo",
+      "modelo": "compacto_azul",
+      "direcao": "baixo_esquerda",
+      "arquivo": "veiculos/compacto_azul/baixo_esquerda.png",
+      "canvas_px": [
+        512,
+        320
+      ],
+      "pivo_chao_px": [
+        256,
+        250
+      ],
+      "margem_minima_px": 16,
+      "origem_atlas_bbox": [
+        385,
+        10,
+        775,
+        266
+      ],
+      "origem_pivo_terreno_atlas_px": [
+        631,
+        230
+      ],
+      "sombra": "contato suave integrante da pintura; nao removida sem perda dos pneus",
+      "orientacao": "frente orientada para baixo-esquerda"
+    },
+    "veiculos/compacto_azul/cima_direita.png": {
+      "tipo": "veiculo",
+      "modelo": "compacto_azul",
+      "direcao": "cima_direita",
+      "arquivo": "veiculos/compacto_azul/cima_direita.png",
+      "canvas_px": [
+        512,
+        320
+      ],
+      "pivo_chao_px": [
+        256,
+        250
+      ],
+      "margem_minima_px": 16,
+      "origem_atlas_bbox": [
+        777,
+        10,
+        1148,
+        265
+      ],
+      "origem_pivo_terreno_atlas_px": [
+        942,
+        229
+      ],
+      "sombra": "contato suave integrante da pintura; nao removida sem perda dos pneus",
+      "orientacao": "frente orientada para cima-direita"
+    },
+    "veiculos/compacto_azul/cima_esquerda.png": {
+      "tipo": "veiculo",
+      "modelo": "compacto_azul",
+      "direcao": "cima_esquerda",
+      "arquivo": "veiculos/compacto_azul/cima_esquerda.png",
+      "canvas_px": [
+        512,
+        320
+      ],
+      "pivo_chao_px": [
+        256,
+        250
+      ],
+      "margem_minima_px": 16,
+      "origem_atlas_bbox": [
+        1154,
+        10,
+        1536,
+        265
+      ],
+      "origem_pivo_terreno_atlas_px": [
+        1323,
+        225
+      ],
+      "sombra": "contato suave integrante da pintura; nao removida sem perda dos pneus",
+      "orientacao": "frente orientada para cima-esquerda"
+    },
+    "veiculos/picape_vermelha/baixo_direita.png": {
+      "tipo": "veiculo",
+      "modelo": "picape_vermelha",
+      "direcao": "baixo_direita",
+      "arquivo": "veiculos/picape_vermelha/baixo_direita.png",
+      "canvas_px": [
+        512,
+        320
+      ],
+      "pivo_chao_px": [
+        256,
+        250
+      ],
+      "margem_minima_px": 16,
+      "origem_atlas_bbox": [
+        0,
+        267,
+        388,
+        526
+      ],
+      "origem_pivo_terreno_atlas_px": [
+        157,
+        500
+      ],
+      "sombra": "contato suave integrante da pintura; nao removida sem perda dos pneus",
+      "orientacao": "frente orientada para baixo-direita"
+    },
+    "veiculos/picape_vermelha/baixo_esquerda.png": {
+      "tipo": "veiculo",
+      "modelo": "picape_vermelha",
+      "direcao": "baixo_esquerda",
+      "arquivo": "veiculos/picape_vermelha/baixo_esquerda.png",
+      "canvas_px": [
+        512,
+        320
+      ],
+      "pivo_chao_px": [
+        256,
+        250
+      ],
+      "margem_minima_px": 16,
+      "origem_atlas_bbox": [
+        390,
+        267,
+        779,
+        526
+      ],
+      "origem_pivo_terreno_atlas_px": [
+        626,
+        505
+      ],
+      "sombra": "contato suave integrante da pintura; nao removida sem perda dos pneus",
+      "orientacao": "frente orientada para baixo-esquerda"
+    },
+    "veiculos/picape_vermelha/cima_direita.png": {
+      "tipo": "veiculo",
+      "modelo": "picape_vermelha",
+      "direcao": "cima_direita",
+      "arquivo": "veiculos/picape_vermelha/cima_direita.png",
+      "canvas_px": [
+        512,
+        320
+      ],
+      "pivo_chao_px": [
+        256,
+        250
+      ],
+      "margem_minima_px": 16,
+      "origem_atlas_bbox": [
+        779,
+        267,
+        1152,
+        525
+      ],
+      "origem_pivo_terreno_atlas_px": [
+        950,
+        490
+      ],
+      "sombra": "contato suave integrante da pintura; nao removida sem perda dos pneus",
+      "orientacao": "frente orientada para cima-direita"
+    },
+    "veiculos/picape_vermelha/cima_esquerda.png": {
+      "tipo": "veiculo",
+      "modelo": "picape_vermelha",
+      "direcao": "cima_esquerda",
+      "arquivo": "veiculos/picape_vermelha/cima_esquerda.png",
+      "canvas_px": [
+        512,
+        320
+      ],
+      "pivo_chao_px": [
+        256,
+        250
+      ],
+      "margem_minima_px": 16,
+      "origem_atlas_bbox": [
+        1154,
+        267,
+        1536,
+        520
+      ],
+      "origem_pivo_terreno_atlas_px": [
+        1349,
+        487
+      ],
+      "sombra": "contato suave integrante da pintura; nao removida sem perda dos pneus",
+      "orientacao": "frente orientada para cima-esquerda"
+    },
+    "fachadas/mercadinho/mercadinho.png": {
+      "tipo": "fachada",
+      "modelo": "mercadinho",
+      "arquivo": "fachadas/mercadinho/mercadinho.png",
+      "canvas_px": [
+        704,
+        576
+      ],
+      "pivo_chao_px": [
+        319,
+        486
+      ],
+      "marcos_base_px": {
+        "frontal_esquerdo": [
+          52,
+          407
+        ],
+        "frontal_direito": [
+          538,
+          559
+        ],
+        "traseiro_direito": [
+          661,
+          497
+        ]
+      },
+      "soleira_porta_px": [
+        319,
+        486
+      ],
+      "recorte_fonte_px": [
+        20,
+        448,
+        677,
+        895
+      ],
+      "retificacao_projecao": "cisalhamento vertical y_new=0.839*y_original+0.176*x_original+deslocamento; nearest-neighbor",
+      "sombra": "nao separada"
+    }
+  },
+  "notas": [
+    "A fachada foi extraida de prancha gerada sobre xadrez opaco; a mascara alfa foi reconstruida por segmentacao, inspecione o contorno antes de usar no jogo.",
+    "O alinhamento com o sprite ORIGINAL mercadinho.png do repositorio ainda depende de comparacao pixel a pixel; nao substitui arquivo existente automaticamente.",
+    "As sombras de contato dos veiculos estavam integradas na arte gerada e foram preservadas, conforme criterio preferencial (nao obrigatorio) de separacao.",
+    "Nao sao arquivos em camadas: as imagens de origem fornecidas estao em fontes/ como PNGs achatados.",
+    "A retificacao da fachada usa valores aproximados conferidos na arte de referencia; os marcos de base sao pontos estimados manualmente, a validar no mapa em Godot."
+  ]
+}

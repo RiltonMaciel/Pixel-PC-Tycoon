@@ -22,6 +22,8 @@ const PERSONAGEM = preload("res://scripts/PersonagemAnimado.gd")
 const CALENDARIO = preload("res://scripts/CalendarioEconomia.gd")
 const MAX_PEDESTRES := 32
 const MAX_VEICULOS := 8
+const ESPACO_PEDESTRE := 44.0
+const ESPACO_VEICULO := 270.0
 const PASSO_MAXIMO := 0.25
 const PERSONAGENS := ["cliente_estudante", "cliente_mochila", "tecnico"]
 
@@ -48,7 +50,7 @@ var _configurado := false
 var _sequencia := 0
 var _turno_pedestre := 0
 var _turno_trafego := 0
-var previa_visual := false
+var previa_visual := VISUAL.PADRAO
 
 func definir_previa(ativa: bool) -> void:
     previa_visual = ativa
@@ -151,6 +153,8 @@ func avancar(delta: float, segundos_do_dia: float, clima_evento: Variant = {}) -
         if not is_finite(velocidade):
             continue
         var distancia := clampf(velocidade, 0, 240) * dt
+        if ator.trafego:
+            distancia = _distancia_trafego(ator,distancia)
         var movimento := Vector2.ZERO
         var rota: PackedVector2Array = ator.rota.pontos
         while distancia > 0 and ator.indice < rota.size():
@@ -342,7 +346,7 @@ func _derivar_trafego() -> void:
             if faixa == 1:
                 x = _tamanho.x - x
             var ponto := _grid * Vector2(x, y)
-            if ponto_valido(ponto, true) and (trecho.is_empty() or segmento_valido(trecho[-1], ponto, true)):
+            if _corredor_veiculo_livre(ponto) and (trecho.is_empty() or segmento_valido(trecho[-1], ponto, true)):
                 trecho.append(ponto)
             else:
                 _guardar_faixa(trecho)
@@ -353,9 +357,33 @@ func _guardar_faixa(pontos: PackedVector2Array) -> void:
     if pontos.size() > 3:
         _rotas_trafego.append({"pontos": pontos, "loja": ""})
 
+func _corredor_veiculo_livre(posicao: Vector2) -> bool:
+    var frente := _grid.x.normalized()*145
+    var lateral := Vector2(-frente.y,frente.x).normalized()*45
+    var carroceria := PackedVector2Array([posicao-frente-lateral,posicao+frente-lateral,
+        posicao+frente+lateral,posicao-frente+lateral])
+    var caixa := Rect2(carroceria[0],Vector2.ZERO)
+    for ponto in carroceria:
+        if not ponto_valido(ponto,true):
+            return false
+        caixa = caixa.expand(ponto)
+    for obstaculo in _obstaculos:
+        if caixa.intersects(obstaculo.caixa) and not Geometry2D.intersect_polygons(carroceria,obstaculo.poligono).is_empty():
+            return false
+    return true
+
 func _ativar(trafego: bool) -> bool:
     var rotas := _rotas_trafego if trafego else _rotas_pedestres
     if rotas.is_empty():
+        return false
+    var turno := _turno_trafego if trafego else _turno_pedestre
+    var indice_rota := -1
+    for tentativa in range(rotas.size()):
+        var indice: int = (turno+tentativa) % rotas.size()
+        if _nascimento_livre(rotas[indice].pontos[0],trafego):
+            indice_rota = indice
+            break
+    if indice_rota < 0:
         return false
     var ator: Dictionary = {}
     var quantidade := 0
@@ -380,16 +408,15 @@ func _ativar(trafego: bool) -> bool:
         add_child(no)
         ator = {"no": no, "trafego": trafego, "ativo": false}
         _atores.append(ator)
-    var turno := _turno_trafego if trafego else _turno_pedestre
-    ator.rota = rotas[turno % rotas.size()]
+    ator.rota = rotas[indice_rota]
     if trafego:
-        _turno_trafego += 1
+        _turno_trafego = indice_rota+1
         var movimento: Vector2 = ator.rota.pontos[1] - ator.rota.pontos[0]
         var id := "compacto_azul_baixo_direita" if (_inversa.basis_xform(movimento)).x > 0 else "compacto_branco_cima_esquerda"
         ator.veiculo_id = id
         _visual_veiculo(ator)
     else:
-        _turno_pedestre += 1
+        _turno_pedestre = indice_rota+1
     _sequencia += 1
     ator.id = _sequencia
     ator.indice = 1
@@ -397,6 +424,31 @@ func _ativar(trafego: bool) -> bool:
     ator.no.position = ator.rota.pontos[0]
     ator.no.visible = true
     return true
+
+func _nascimento_livre(posicao: Vector2, trafego: bool) -> bool:
+    var espaco := ESPACO_VEICULO if trafego else ESPACO_PEDESTRE
+    for outro in _atores:
+        if outro.ativo and outro.trafego == trafego and posicao.distance_to(outro.no.position) < espaco:
+            return false
+    return true
+
+func _distancia_trafego(ator: Dictionary, desejada: float) -> float:
+    var destino: Vector2 = ator.rota.pontos[ator.indice]
+    var frente: Vector2 = (destino-ator.no.position).normalized()
+    var permitida := desejada
+    for outro in _atores:
+        if not outro.ativo or outro.id == ator.id:
+            continue
+        var uv: Vector2 = _inversa * outro.no.position
+        if not outro.trafego and (uv.y < _rua_inicio or uv.y >= _rua_fim):
+            continue
+        var relativo: Vector2 = outro.no.position-ator.no.position
+        var adiante := relativo.dot(frente)
+        if adiante <= 0 or absf(relativo.cross(frente)) >= 70:
+            continue
+        var espaco := ESPACO_VEICULO if outro.trafego else 160.0
+        permitida = minf(permitida,maxf(0,adiante-espaco))
+    return permitida
 
 func _desativar(ator: Dictionary) -> void:
     ator.ativo = false

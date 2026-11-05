@@ -1571,7 +1571,7 @@ func _abrir_financas() -> void:
     _texto_painel("Plano de campanha: PC inicial custa %d e rende margem %d.\nDespesas/dia com equipe atual: %d. Equilibrio: %d PC(s).\nMeta: 2 PCs/dia; lucro previsto %d/dia.\nReserve %d para pecas e contas antes de expandir.\nProjecao, nao renda garantida; demanda/estoque dependem do jogador." % [meta["custo_pc"],meta["margem_pc"],meta["despesas"],meta["equilibrio"],meta["lucro_meta"],meta["reserva"]])
     _button("Funcionarios: contratar e atribuir tarefas",_abrir_equipe,shop_list)
     _button("Guia, objetivos, aparencia e acabamentos",_abrir_progresso,shop_list)
-    _button("Previa visual do bairro: " + ("desativar" if bairro.previa_visual else "ativar"),_alternar_previa_visual,shop_list)
+    _button("Visual do bairro: " + ("usar originais" if bairro.previa_visual else "usar amostras v1"),_alternar_previa_visual,shop_list)
     _button("Imoveis, ampliacao e ambiente",_abrir_imovel,shop_list)
     _button("Recentralizar camera (arraste/pinca/roda)",_recentralizar_camera,shop_list)
     if relogio_bloqueado:
@@ -2049,8 +2049,15 @@ func _alternar_previa_visual() -> bool:
         info.text = "Conclua a edicao/transicao antes de comparar os visuais."
         return false
     bairro.definir_previa(not bairro.previa_visual)
+    if not mundo_vivo.configurar(bairro):
+        var erro := mundo_vivo.ultimo_erro
+        bairro.definir_previa(not bairro.previa_visual)
+        if not mundo_vivo.configurar(bairro):
+            push_error("Falha ao restaurar circulacao: " + mundo_vivo.ultimo_erro)
+        info.text = "Nao foi possivel aplicar o visual: " + erro
+        return false
     mundo_vivo.definir_previa(bairro.previa_visual)
-    info.text = "Previa visual nesta sessao; arte pendente de aprovacao. Originais preservados." if bairro.previa_visual else "Visual original restaurado."
+    info.text = "Amostras v1 ativas. Arte original preservada; circulacao recalculada." if bairro.previa_visual else "Visual original restaurado; circulacao recalculada."
     _abrir_financas()
     return true
 
