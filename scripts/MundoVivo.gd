@@ -429,7 +429,8 @@ func _ativar(trafego: bool) -> bool:
         _turno_pedestre = indice_rota+1
     _sequencia += 1
     ator.id = _sequencia
-    if not trafego and not ator.has("perfil"):
+    if not trafego:
+        # O no pode ser reutilizado, mas o perfil pertence ao novo pedestre.
         ator.perfil = INTERESSE.perfil(_sequencia)
     ator.indice = 1
     ator.ativo = true
