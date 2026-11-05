@@ -62,6 +62,7 @@ func _executar() -> void:
             mundo.avancar(0.25, 450.0)
             mundo.avancar(0.25, 450.0)
             _check(observador.direcao == "esquerda", "observador olha para esquerda")
+            _check(observador.texture == observador.quadros["esquerda"][0], "observacao usa quadro idle original")
             _check(observador.position == posicao, "olhar nao altera a posicao")
             mundo.avancar(0.25, 450.0)
             mundo.avancar(0.25, 450.0)
