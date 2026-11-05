@@ -71,12 +71,17 @@ func _executar() -> void:
     # Mantem a meta ativa ate o fim da observacao; reduzir a meta agora
     # desativaria o pedestre antes de ele poder iniciar o retorno.
     var retornou := false
+    var posicao_retorno: Vector2 = destino
     for i in range(20):
         mundo.avancar(0.25, 450.0)
         for ator in mundo.estado().atores:
             if ator.estado_npc == "retornando":
                 retornou = true
+                _check(mundo.ponto_valido(ator.posicao), "retorno permanece em piso caminhavel")
+                _check(mundo.segmento_valido(posicao_retorno, ator.posicao), "retorno nao atravessa obstaculos")
+                posicao_retorno = ator.posicao
     _check(retornou, "observador retorna caminhando pela calcada")
+    _check(posicao_retorno.distance_to(destino) > 0.01, "observador se afasta da vitrine")
     # Ao encerrar o fluxo, nao deve restar nenhum ator ativo.
     mundo.limite_pedestres = 0
     mundo.avancar(0.25, 450.0)
