@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/RuaComercial.tscn" id="1_rua"]
+[ext_resource type="Script" path="res://addons/bairro_vivo_lote1/JardineirasPreview.gd" id="2_jard"]
+
+[node name="RuaComercial_Lote1_QA" instance=ExtResource("1_rua")]
+
+[node name="JardineirasPreview" type="Node2D" parent="."]
+script = ExtResource("2_jard")
