@@ -63,7 +63,10 @@ func _executar() -> void:
     mundo.limite_pedestres = 0
     mundo.avancar(0.25, 450.0)
     _check(mundo.estado().atores.is_empty(), "observador sai ao encerrar fluxo")
-    # O mesmo ator visual reutilizado deve permitir entrada para um perfil gamer.
+    # Reinicia o cenario para isolar a decisao gamer: a densidade pode
+    # criar novos observadores enquanto aguardamos o retorno do primeiro.
+    _check(mundo.configurar(dados), "cenario gamer configurado")
+    avaliacoes.clear()
     mundo.limite_pedestres = 1
     mundo.avancar(0.1, 450.0)
     _check(mundo.estado().atores.size() == 1, "novo pedestre ativo")
@@ -77,7 +80,7 @@ func _executar() -> void:
             entrou = true
             break
     _check(entrou, "gamer entra em vez de observar")
-    _check(avaliacoes == ["observar", "entrar"], "sinais comerciais distintos")
+    _check(avaliacoes == ["entrar"], "gamer emite apenas decisao de entrada")
     mundo.free()
     print("BV-03 vitrine: ", "OK" if erros == 0 else "FALHOU")
     quit(0 if erros == 0 else 1)
