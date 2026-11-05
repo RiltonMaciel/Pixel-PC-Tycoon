@@ -1,6 +1,8 @@
 name: Bairro Vivo - Godot validation
 
 on:
+  push:
+    branches: [feature/bairro-vivo-2]
   pull_request:
     branches: [main]
     paths:
