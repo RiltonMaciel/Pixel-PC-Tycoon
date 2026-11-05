@@ -40,3 +40,7 @@ jobs:
         run: godot --headless --path . --script res://tests/test_bairro_fluxo_comercial.gd
       - name: Test tree wind structure
         run: godot --headless --path . --script res://tests/test_vento_copa.gd
+      - name: Run world simulation regression
+        run: godot --headless --path . --script res://tests/test_world.gd
+      - name: Run game integration regression
+        run: godot --headless --path . --script res://tests/test_game.gd
