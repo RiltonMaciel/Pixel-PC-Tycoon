@@ -25,7 +25,9 @@ func _executar() -> void:
     ok = _check(sprite.offset == offset_original, "pivo original preservado") and ok
     ok = _check(sprite.position == posicao_original, "posicao original preservada") and ok
     ok = _check(sprite.material is ShaderMaterial, "material de vento instalado") and ok
-    ok = _check(VIZINHANCA.new().arvores_animadas, "animacao habilitada por padrao") and ok
+    var vizinhanca := VIZINHANCA.new()
+    ok = _check(vizinhanca.arvores_animadas, "animacao habilitada por padrao") and ok
+    vizinhanca.free()
     sprite.queue_free()
     await process_frame
     print("BV-02 estrutural: ", "OK" if ok else "FALHOU")
