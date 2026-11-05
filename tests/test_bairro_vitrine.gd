@@ -45,7 +45,7 @@ func _executar() -> void:
             break
     _check(encontrou, "estudante observa vitrine")
     _check(avaliacoes == ["observar"], "avaliacao unica na chegada")
-    var posicao := mundo.estado().atores[0].posicao if encontrou else Vector2.ZERO
+    var posicao: Vector2 = mundo.estado().atores[0].posicao if encontrou else Vector2.ZERO
     mundo.avancar(0.25, 450.0)
     if encontrou:
         _check(mundo.estado().atores[0].posicao == posicao, "observacao sem movimento")
