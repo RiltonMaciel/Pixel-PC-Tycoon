@@ -25,12 +25,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
       - name: Android platform and build tools
+        shell: bash
         run: |
-          sdkmanager --licenses < /dev/null || true
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          set -euo pipefail
+          # GitHub ubuntu-latest already provides Android command-line tools.
+          # Avoid setup-android@v3: its legacy 'tools' package is unavailable.
+          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
+          command -v sdkmanager
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       - name: Godot 4.4.1 and matching export templates
         shell: bash
         run: |
